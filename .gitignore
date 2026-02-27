@@ -1,0 +1,16 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Local database
+college.db
+
+# Environment variables
+.env
+
+# VS Code
+.vscode/
+
+# OS junk
+.DS_Store
+Thumbs.db

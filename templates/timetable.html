@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>📌 Current Schedule</h1>
+
+<form method="POST" class="card" style="margin-bottom:30px;">
+
+    <h3>Select Subject</h3>
+
+    <select name="subject_id" required style="width:100%; padding:10px; margin-bottom:20px;">
+        <option value="">-- Choose Subject --</option>
+        {% for subject in subjects %}
+            <option value="{{ subject[0] }}">
+                {{ subject[1] }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <h3>Select Days</h3>
+
+    <div style="display:flex; gap:15px; flex-wrap:wrap; margin-bottom:20px;">
+        {% for day, name in [
+            (0,"Monday"),
+            (1,"Tuesday"),
+            (2,"Wednesday"),
+            (3,"Thursday"),
+            (4,"Friday"),
+            (5,"Saturday")
+        ] %}
+            <label>
+                <input type="checkbox" name="weekdays" value="{{ day }}">
+                {{ name }}
+            </label>
+        {% endfor %}
+    </div>
+
+    <button type="submit" class="btn">💾 Save Timetable</button>
+
+</form>
+
+<hr>
+
+<h2>📅 Saved Timetable</h2>
+
+<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-top:20px;">
+
+{% for subject in subjects %}
+    <div class="card">
+        <h3>{{ subject[1] }}</h3>
+
+        {% if timetable_map.get(subject[0]) %}
+            <ul>
+                {% for day in timetable_map[subject[0]] %}
+                    <li>
+                        {% if day == 0 %} Monday
+                        {% elif day == 1 %} Tuesday
+                        {% elif day == 2 %} Wednesday
+                        {% elif day == 3 %} Thursday
+                        {% elif day == 4 %} Friday
+                        {% elif day == 5 %} Saturday
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No days selected</p>
+        {% endif %}
+    </div>
+{% endfor %}
+
+</div>
+
+{% endblock %}
+
+

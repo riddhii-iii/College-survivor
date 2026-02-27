@@ -1,0 +1,43 @@
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.card {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+}
+
+.card h3 {
+    margin-top: 0;
+}
+
+.card a {
+    display: inline-block;
+    margin-top: 10px;
+    text-decoration: none;
+    color: #6c4cff;
+    font-weight: 600;
+}
+
+.summary {
+    grid-column: span 2;
+}
+
+.danger {
+    border-left: 6px solid #ff4d4d;
+}
+.day-cell {
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+
+.day-cell:hover {
+    background: rgba(0,0,0,0.08);
+}

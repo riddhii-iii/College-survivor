@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="danger-wrapper">
+
+    <!-- HEADER -->
+    <div class="danger-header">
+        <h1>⚠ Weekly Danger Report</h1>
+        <p>Subjects that need attention this week</p>
+    </div>
+
+    {% if danger_list %}
+
+    <div class="danger-grid">
+
+        {% for item in danger_list %}
+        <div class="danger-card">
+
+            <div class="card-top">
+                <h3>{{ item.subject }}</h3>
+                <span class="danger-badge">At Risk</span>
+            </div>
+
+            <ul class="reason-list">
+                {% for reason in item.reasons %}
+                <li>• {{ reason }}</li>
+                {% endfor %}
+            </ul>
+
+        </div>
+        {% endfor %}
+
+    </div>
+
+    {% else %}
+
+    <div class="safe-state">
+        🎉 Everything looks safe this week!
+    </div>
+
+    {% endif %}
+
+</div>
+
+<style>
+
+/* ===== PAGE BACKGROUND ===== */
+.danger-wrapper {
+    min-height: 100vh;
+    padding: 40px;
+    background: linear-gradient(135deg, #0F1C3F 0%, #1C2E5A 65%, #F8F5E9 100%);
+    font-family: system-ui;
+}
+
+/* ===== HEADER ===== */
+.danger-header {
+    text-align: center;
+    margin-bottom: 45px;
+    color: #FFD97D; /* vanilla gold */
+}
+
+.danger-header h1 {
+    margin-bottom: 8px;
+    font-size: 34px;
+}
+
+.danger-header p {
+    opacity: 0.85;
+    color: #F8F5E9;
+}
+
+/* ===== GRID ===== */
+.danger-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 28px;
+}
+
+/* ===== CARD ===== */
+.danger-card {
+    background: #F8F5E9; /* vanilla card */
+    border-radius: 22px;
+    padding: 26px;
+    box-shadow: 0 20px 45px rgba(0,0,0,0.25);
+    transition: 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Midnight accent bar */
+.danger-card::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 8px;
+    height: 100%;
+    background: #FFD97D;
+    border-radius: 22px 0 0 22px;
+}
+
+.danger-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 25px 55px rgba(0,0,0,0.35);
+}
+
+/* ===== CARD TOP ===== */
+.card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.card-top h3 {
+    margin: 0;
+    color: #1C2E5A;
+}
+
+/* ===== BADGE ===== */
+.danger-badge {
+    background: #FFD97D;
+    color: #1C2E5A;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* ===== REASONS ===== */
+.reason-list {
+    padding-left: 0;
+    list-style: none;
+    color: #444;
+}
+
+.reason-list li {
+    margin-bottom: 10px;
+    padding-left: 8px;
+    position: relative;
+}
+
+.reason-list li::before {
+    content: "⚠";
+    margin-right: 8px;
+    color: #1C2E5A;
+}
+
+/* ===== SAFE STATE ===== */
+.safe-state {
+    background: #F8F5E9;
+    padding: 32px;
+    border-radius: 22px;
+    text-align: center;
+    font-weight: 600;
+    color: #1C2E5A;
+    box-shadow: 0 20px 45px rgba(0,0,0,0.25);
+}
+
+</style>
+
+
+{% endblock %}

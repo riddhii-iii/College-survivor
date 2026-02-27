@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="page-wrapper">
+
+    <h1 class="page-title">My Subjects</h1>
+    <p class="subtitle">Manage your semester beautifully</p>
+
+    <div class="add-btn-wrapper">
+        <a href="/add-subject" class="add-btn">➕ Add Subject</a>
+    </div>
+
+    {% if subjects %}
+        <div class="subjects-grid">
+
+            {% for s in subjects %}
+            <div class="subject-card">
+
+                <h3 class="subject-title">{{ s.name }}</h3>
+
+                <div class="info">
+                    <p>📚 Credits: <strong>{{ s.credits }}</strong></p>
+                    <p>📊 Required: <strong>{{ s.required }}%</strong></p>
+                    <p>⏳ Class Weight: <strong>{{ s.weight }}</strong></p>
+                </div>
+
+                <div class="card-actions">
+                    <a href="/edit-subject/{{ s.id }}" class="edit-btn">
+                        ✏ Edit
+                    </a>
+
+                    <a href="/delete-subject/{{ s.id }}"
+                       class="delete-btn"
+                       onclick="return confirm('Delete this subject?')">
+                       🗑 Delete
+                    </a>
+                </div>
+
+                <!-- EXTRA CLASS FORM -->
+                <div class="extra-class-form">
+                    <form method="POST" action="/add-extra-class">
+                        <input type="hidden" name="subject_id" value="{{ s.id }}">
+                        
+                        <input type="date" name="class_date" required class="date-input">
+
+                        <button type="submit" class="extra-btn">
+                            ➕ Add Extra Class
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+            {% endfor %}
+
+        </div>
+    {% else %}
+        <div class="empty-state">
+            🌼 No subjects added yet.
+        </div>
+    {% endif %}
+
+</div>
+
+<style>
+
+/* ================= PAGE ================= */
+
+.page-wrapper {
+    min-height: 100vh;
+    padding: 40px;
+    background: linear-gradient(135deg, #0F1C3F 0%, #1C2E5A 65%, #F8F5E9 100%);
+    font-family: system-ui;
+}
+
+/* ================= HEADER ================= */
+
+.page-title {
+    color: #FFD97D;
+    font-size: 32px;
+    margin-bottom: 6px;
+}
+
+.subtitle {
+    color: #F8F5E9;
+    opacity: 0.85;
+    margin-bottom: 35px;
+}
+
+/* ================= ADD BUTTON ================= */
+
+.add-btn-wrapper {
+    margin-bottom: 35px;
+}
+
+.add-btn {
+    background: #FFD97D;
+    color: #1C2E5A;
+    padding: 12px 22px;
+    border-radius: 16px;
+    text-decoration: none;
+    font-weight: 600;
+    box-shadow: 0 10px 22px rgba(0,0,0,0.25);
+    transition: 0.3s ease;
+}
+
+.add-btn:hover {
+    background: #FFE8A3;
+    transform: translateY(-3px);
+}
+
+/* ================= GRID ================= */
+
+.subjects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 28px;
+}
+
+/* ================= CARD ================= */
+
+.subject-card {
+    background: #F8F5E9;
+    padding: 26px;
+    border-radius: 22px;
+    box-shadow: 0 20px 45px rgba(0,0,0,0.25);
+    transition: 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.subject-card::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 8px;
+    height: 100%;
+    background: #5d79c2;
+    border-radius: 22px 0 0 22px;
+}
+
+.subject-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 25px 55px rgba(0,0,0,0.35);
+}
+
+/* ================= CONTENT ================= */
+
+.subject-title {
+    margin-bottom: 16px;
+    color: #1C2E5A;
+    font-size: 20px;
+}
+
+.info p {
+    margin: 8px 0;
+    color: #444;
+    font-weight: 500;
+}
+
+/* ================= ACTION BUTTONS ================= */
+
+.card-actions {
+    margin-top: 20px;
+    display: flex;
+    gap: 12px;
+}
+
+.edit-btn {
+    background: #FFD97D;
+    padding: 8px 16px;
+    border-radius: 12px;
+    text-decoration: none;
+    color: #1C2E5A;
+    font-weight: 600;
+    transition: 0.3s ease;
+}
+
+.edit-btn:hover {
+    background: #FFE8A3;
+}
+
+.delete-btn {
+    background: #1C2E5A;
+    padding: 8px 16px;
+    border-radius: 12px;
+    text-decoration: none;
+    color: #F8F5E9;
+    font-weight: 600;
+    transition: 0.3s ease;
+}
+
+.delete-btn:hover {
+    background: #0F1C3F;
+}
+
+/* ================= EXTRA CLASS FORM ================= */
+
+.extra-class-form {
+    margin-top: 18px;
+}
+
+.date-input {
+    padding: 8px;
+    border-radius: 10px;
+    border: none;
+    background: #fff;
+    margin-right: 8px;
+}
+
+.extra-btn {
+    background: #5d79c2;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.3s ease;
+}
+
+.extra-btn:hover {
+    background: #3f5da9;
+}
+
+/* ================= EMPTY STATE ================= */
+
+.empty-state {
+    background: #F8F5E9;
+    padding: 28px;
+    border-radius: 20px;
+    color: #1C2E5A;
+    font-weight: 600;
+    text-align: center;
+    box-shadow: 0 20px 45px rgba(0,0,0,0.25);
+}
+
+</style>
+
+{% endblock %}

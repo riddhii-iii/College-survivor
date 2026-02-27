@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Edit Subject</h2>
+
+<form method="POST">
+
+    <label>Subject Name</label><br>
+    <input type="text" name="name"
+           value="{{ subject[1] }}" required><br><br>
+
+    <label>Credits</label><br>
+    <input type="number" name="credits"
+           value="{{ subject[2] }}" required><br><br>
+
+    <label>Attendance Required (%)</label><br>
+    <input type="number" name="attendance_required"
+           value="{{ subject[3] }}" required><br><br>
+
+    <label>Class Weight (1 = theory, 2 = lab)</label><br>
+    <input type="number" name="attendance_weight"
+           value="{{ subject[4] }}" required><br><br>
+
+    <button type="submit">Update Subject</button>
+
+</form>
+
+{% endblock %}

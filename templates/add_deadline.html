@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Add Deadline</h2>
+
+<form method="POST">
+
+    <label>Subject:</label>
+    <select name="subject_id" required>
+        {% for s in subjects %}
+            <option value="{{ s[0] }}">{{ s[1] }}</option>
+        {% endfor %}
+    </select>
+
+    <br><br>
+
+    <label>Title:</label>
+    <input type="text" name="title" required>
+
+    <br><br>
+
+    <label>Due Date:</label>
+    <input type="date" name="due_date" required>
+
+    <br><br>
+
+    <label>Type:</label>
+    <select name="type">
+        <option value="assignment">Assignment</option>
+        <option value="exam">Exam</option>
+        <option value="project">Project</option>
+    </select>
+
+    <br><br>
+
+    <button type="submit">Add Deadline</button>
+
+</form>
+
+{% endblock %}

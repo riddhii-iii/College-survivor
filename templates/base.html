@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ title or "College Survivor" }}</title>
+
+<style>
+
+/* ==================================================
+   THEME VARIABLES
+================================================== */
+
+/* ===== DEFAULT: Midnight & Vanilla ===== */
+:root {
+    --bg-gradient: linear-gradient(135deg, #0F1C3F, #1A2A6C);
+    --navbar-bg: rgba(15, 28, 63, 0.95);
+    --card-bg: #F8F5E9;
+    --text-main: #1A2A6C;
+    --text-light: #F8F5E9;
+    --accent: #FFD97D;
+    --accent-hover: #FFCA4D;
+}
+
+/* ===== Matcha & Cherry ===== */
+body.theme-matcha {
+    --bg-gradient: linear-gradient(135deg, #E8F5E9, #FDECEF);
+    --navbar-bg: rgba(76, 175, 80, 0.95);
+    --card-bg: #FFFFFF;
+    --text-main: #2E2E2E;
+    --text-light: #FFFFFF;
+    --accent: #C2185B;
+    --accent-hover: #AD1457;
+}
+
+/* ==================================================
+   GLOBAL
+================================================== */
+
+body {
+    margin: 0;
+    font-family: "Segoe UI", sans-serif;
+    background: var(--bg-gradient);
+    color: var(--text-light);
+    padding: 20px 24px 40px;
+    transition: background 0.4s ease;
+}
+
+/* ==================================================
+   NAVBAR
+================================================== */
+
+.navbar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 14px 28px;
+    margin-bottom: 40px;
+
+    background: var(--navbar-bg);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+
+    box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+}
+
+.nav-left {
+    display: flex;
+    gap: 22px;
+    flex-wrap: wrap;
+}
+
+.nav-left a {
+    text-decoration: none;
+    color: var(--accent);
+    font-weight: 600;
+    transition: 0.2s ease;
+}
+
+.nav-left a:hover {
+    color: var(--text-light);
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.theme-switcher {
+    padding: 6px 12px;
+    border-radius: 10px;
+    border: none;
+    background: var(--accent);
+    color: var(--text-main);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.logout {
+    text-decoration: none;
+    color: #FF8A80;
+    font-weight: 600;
+}
+
+.logout:hover {
+    color: var(--text-light);
+}
+
+/* ==================================================
+   HEADINGS
+================================================== */
+
+h1 {
+    margin: 0;
+    font-size: 30px;
+    font-weight: 700;
+}
+
+/* ==================================================
+   CARDS
+================================================== */
+
+.card {
+    position: relative;
+    overflow: hidden;
+
+    background: var(--card-bg);
+    color: var(--text-main);
+    border-radius: 20px;
+    padding: 26px 30px;
+
+    box-shadow: 0 18px 40px rgba(0,0,0,0.35);
+    transition: transform .25s ease, box-shadow .25s ease;
+}
+
+.card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 24px 50px rgba(0,0,0,0.45);
+}
+
+.card::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 8px;
+    height: 100%;
+    border-radius: 20px 0 0 20px;
+    background: var(--accent);
+}
+
+/* ==================================================
+   BUTTONS
+================================================== */
+
+button,
+.btn {
+    background: var(--accent);
+    color: var(--text-main);
+    border: none;
+    padding: 8px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.2s ease;
+}
+
+
+button:hover,
+.btn:hover {
+    background: var(--accent-hover);
+}
+
+/* ==================================================
+   PROGRESS
+================================================== */
+
+.progress-bar {
+    width: 100%;
+    height: 10px;
+    background: rgba(0,0,0,0.1);
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 20px;
+    background: linear-gradient(90deg, var(--accent), var(--text-main));
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- ================= NAVBAR ================= -->
+
+<div class="navbar">
+    <div class="nav-left">
+        <a href="/dashboard">🏠 Dashboard</a>
+        <a href="/attendance">📅 Attendance</a>
+        <a href="/deadlines">📝 Deadlines</a>
+        <a href="/weekly-danger">⚠ Weekly Danger</a>
+        <a href="/subjects">📚 Subjects</a>
+        <a href="/timetable">🗓 Timetable</a>
+        <a href="/profile">👤 Profile</a>
+        
+    
+
+    </div>
+    
+
+
+    <div class="nav-right">
+        <select id="themeSwitcher" class="theme-switcher">
+            <option value="">Midnight & Vanilla</option>
+            <option value="theme-matcha">Matcha & Cherry</option>
+        </select>
+
+        <a href="/logout" class="logout">Logout</a>
+    </div>
+</div>
+
+<hr style="border-color: rgba(255,255,255,0.2); margin-bottom: 30px;">
+
+{% block content %}{% endblock %}
+
+<!-- ================= THEME SCRIPT ================= -->
+
+<script>
+const switcher = document.getElementById("themeSwitcher");
+
+// Apply theme
+function applyTheme(theme) {
+    document.body.className = theme;
+    localStorage.setItem("site-theme", theme);
+}
+
+// Change event
+switcher.addEventListener("change", function() {
+    applyTheme(this.value);
+});
+
+// Load saved theme
+window.addEventListener("DOMContentLoaded", function() {
+    const savedTheme = localStorage.getItem("site-theme");
+    if (savedTheme) {
+        document.body.className = savedTheme;
+        switcher.value = savedTheme;
+    }
+});
+</script>
+
+</body>
+</html>

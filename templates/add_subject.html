@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Add Subject</h2>
+
+<form method="POST">
+    <label>Subject Name:</label><br>
+    <input type="text" name="name" required><br><br>
+
+    <label>Credits:</label><br>
+    <input type="number" name="credits" required><br><br>
+
+    <label>Attendance Required (%):</label><br>
+    <input type="number" name="attendance_required" value="75" required><br><br>
+
+    <button type="submit">Add Subject</button>
+
+    <label>Attendance per class:</label>
+<select name="attendance_weight">
+    <option value="1">1 hour (Lecture)</option>
+    <option value="2">2 hours (Lab)</option>
+</select>
+
+</form>
+
+{% endblock %}
+

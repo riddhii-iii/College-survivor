@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Attendance Calendar</title>
+    <style>
+        table { border-collapse: collapse; }
+        td { width: 40px; height: 40px; text-align: center; border: 1px solid #ccc; }
+        .absent { background-color: #ffcccc; }
+        .present { background-color: #ccffcc; }
+    </style>
+</head>
+<body>
+
+<h2>📅 {{ subject_name }} — {{ month }}/{{ year }}</h2>
+
+<table>
+    <tr>
+        <th>Mon</th><th>Tue</th><th>Wed</th>
+        <th>Thu</th><th>Fri</th><th>Sat</th><th>Sun</th>
+    </tr>
+
+    {% for week in calendar %}
+        <tr>
+        {% for day in week %}
+            {% if day == 0 %}
+                <td></td>
+            {% else %}
+                {% set date_str = "%04d-%02d-%02d"|format(year, month, day) %}
+                {% if attendance_map.get(date_str) == 'absent' %}
+                    <td class="absent">❌ {{ day }}</td>
+                {% elif attendance_map.get(date_str) == 'present' %}
+                    <td class="present">✔ {{ day }}</td>
+                {% else %}
+                    <td>{{ day }}</td>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+        </tr>
+    {% endfor %}
+</table>
+
+<br>
+<a href="/attendance">⬅ Back to Attendance</a>
+
+</body>
+</html>

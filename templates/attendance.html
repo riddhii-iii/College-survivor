@@ -1,0 +1,508 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- ================= MONTH SUMMARY ================= -->
+<div class="month-summary">
+    <h2>📅 Monthly Attendance Overview</h2>
+
+    <div class="month-progress-wrap">
+    <svg class="progress-ring" width="120" height="120">
+        <circle
+            class="ring-bg"
+            cx="60"
+            cy="60"
+            r="50"
+        />
+        <circle
+            class="ring-progress"
+            cx="60"
+            cy="60"
+            r="50"
+            data-progress="{{ monthly_attendance }}"
+        />
+    </svg>
+
+    <div class="ring-text">
+        <span class="count-up" data-target="{{ monthly_attendance }}">0</span>%
+        <div class="ring-label">This Month</div>
+    </div>
+</div>
+
+
+    <p class="status-text">{{ month_status }}</p>
+
+    <p class="rule-text">
+        Minimum required: <strong>{{ min_required }}%</strong><br>
+        You can miss <strong>{{ can_miss }}</strong> more classes
+    </p>
+</div>
+
+<!-- ================= MONTH NAVIGATION ================= -->
+<div class="month-nav">
+    <a href="/attendance?year={{ prev_year }}&month={{ prev_month }}">
+        ◀ {{ prev_month_name }}
+    </a>
+
+    <h2>{{ month_name }} {{ year }}</h2>
+
+    <a href="/attendance?year={{ next_year }}&month={{ next_month }}">
+        {{ next_month_name }} ▶
+    </a>
+</div>
+
+<!-- ================= SUBJECT FILTER ================= -->
+<select id="subjectSelect">
+    <option value="">All Subjects</option>
+    {% for subject in subjects %}
+        <option value="{{ subject.id }}">{{ subject.name }}</option>
+    {% endfor %}
+</select>
+
+<!-- ================= TODAY ================= -->
+<p class="muted">
+    Showing classes for <strong>{{ weekday }}</strong>
+</p>
+
+<h1>Today’s Classes</h1>
+<p class="muted">Mark what happened today. We’ll track the rest.</p>
+
+{% if subjects|length == 0 %}
+    <p class="empty">No classes scheduled for today 🎉</p>
+{% endif %}
+
+<!-- ================= SUBJECT CARDS ================= -->
+<div id="subjectsContainer">
+
+{% for subject in subjects %}
+<div class="subject-card color-{{ loop.index0 % 5 }}" data-subject="{{ subject.id }}">
+
+
+    <!-- LEFT -->
+    <div class="subject-left">
+        <h3>{{ subject.name }}</h3>
+
+        <div class="actions">
+            <a class="btn present" href="/mark/{{ subject.id }}/present">✔ Present</a>
+            <a class="btn absent" href="/mark/{{ subject.id }}/absent">❌ Absent</a>
+            <a class="btn cancelled" href="/mark/{{ subject.id }}/cancelled">🚫 Cancelled</a>
+        </div>
+
+        <p>Attendance: <strong>{{ subject.attendance }}%</strong></p>
+
+        {% if subject.attendance < min_required %}
+            <p class="danger">⚠ Attendance at risk</p>
+        {% else %}
+            <p class="safe">✔ Safe</p>
+        {% endif %}
+
+        <p>You can miss <strong>{{ subject.skip_left }}</strong> more classes</p>
+
+        <!-- Progress -->
+        <div class="progress">
+            <div class="progress-text">
+                {{ subject.attendance }}% / {{ min_required }}%
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill"
+                     style="width:{{ subject.attendance }}%;
+                     background:{% if subject.attendance < min_required %}#f28b82{% else %}#81c995{% endif %};">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT : CALENDAR -->
+    <div class="calendar-box">
+        <strong>This Month</strong>
+
+        <div class="calendar-header">
+            {% for d in ["M","T","W","T","F","S","S"] %}
+                <div>{{ d }}</div>
+            {% endfor %}
+        </div>
+
+        <div class="calendar-grid">
+            {% for week in calendar %}
+                {% for day in week %}
+                    {% if day == 0 %}
+                        <div></div>
+                    {% else %}
+                        {% set key = "%04d-%02d-%02d"|format(year, month, day) %}
+                        {% set status = subject.attendance_map.get(key) %}
+                        <div class="day-cell"
+                             data-date="{{ key }}"
+                             data-subject="{{ subject.id }}">
+                            <div>{{ day }}</div>
+                            {% if status == "present" %}<div class="status present">✔</div>{% endif %}
+                            {% if status == "absent" %}<div class="status absent">❌</div>{% endif %}
+                            {% if status == "cancelled" %}<div class="status cancelled">🚫</div>{% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endfor %}
+</div>
+
+<!-- ================= CLICKABLE CALENDAR ================= -->
+<script>
+document.querySelectorAll(".day-cell").forEach(cell => {
+    cell.addEventListener("click", () => {
+        const date = cell.dataset.date;
+        const subjectId = cell.dataset.subject;
+
+        const status = prompt(
+            "Mark attendance:\n1 = Present\n2 = Absent\n3 = Cancelled"
+        );
+
+        const map = { "1": "present", "2": "absent", "3": "cancelled" };
+        if (!map[status]) return;
+
+        fetch("/mark-attendance", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                subject_id: subjectId,
+                date: date,
+                status: map[status]
+            })
+        }).then(() => location.reload());
+    });
+});
+</script>
+
+<!-- ================= SUBJECT REORDER + ANIMATION ================= -->
+<script>
+const selector = document.getElementById("subjectSelect");
+const container = document.getElementById("subjectsContainer");
+
+selector.addEventListener("change", () => {
+    const selected = selector.value;
+    const cards = Array.from(container.children);
+
+    cards.forEach(card => {
+        card.style.opacity = "0";
+        card.style.transform = "translateY(12px)";
+    });
+
+    setTimeout(() => {
+        if (selected) {
+            cards.sort((a, b) =>
+                a.dataset.subject === selected ? -1 :
+                b.dataset.subject === selected ? 1 : 0
+            );
+        }
+
+        cards.forEach(card => container.appendChild(card));
+
+        requestAnimationFrame(() => {
+            cards.forEach(card => {
+                card.style.opacity = "1";
+                card.style.transform = "translateY(0)";
+            });
+        });
+    }, 250);
+});
+</script>
+<script>
+/* ===== Animate Circular Progress ===== */
+document.querySelectorAll(".ring-progress").forEach(circle => {
+    const percent = circle.dataset.progress;
+    const radius = 50;
+    const circumference = 2 * Math.PI * radius;
+
+    const offset = circumference - (percent / 100) * circumference;
+    circle.style.strokeDashoffset = offset;
+});
+
+/* ===== Count-up Animation ===== */
+document.querySelectorAll(".count-up").forEach(el => {
+    const target = +el.dataset.target;
+    let current = 0;
+    const step = Math.max(1, Math.ceil(target / 40));
+
+    const timer = setInterval(() => {
+        current += step;
+        if (current >= target) {
+            el.textContent = target;
+            clearInterval(timer);
+        } else {
+            el.textContent = current;
+        }
+    }, 18);
+});
+</script>
+
+<!-- ================= STYLES ================= -->
+<style>
+
+/* ================= GLOBAL ================= */
+
+body {
+    background: linear-gradient(135deg, #0F1C3F, #1A2A6C);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont;
+    color: #F8F5E9;
+    margin: 0;
+}
+
+h1, h2, h3 {
+    color: #FFD97D;
+}
+
+.muted { color: #D6D2C4; }
+.empty { color: #CFC9B8; }
+
+/* ================= MONTH SUMMARY ================= */
+
+.month-summary {
+    background: #F8F5E9;
+    color: #1A2A6C;
+    padding: 28px;
+    border-radius: 22px;
+    margin-bottom: 35px;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.35);
+    border-left: 10px solid #1A2A6C;
+}
+
+.month-summary h2 {
+    margin-top: 0;
+    font-weight: 600;
+    color: #1A2A6C;
+}
+
+.month-summary strong {
+    font-size: 20px;
+    color: #0F1C3F;
+}
+
+/* ================= CIRCULAR PROGRESS ================= */
+
+.month-progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin: 18px 0;
+}
+
+.progress-ring {
+    transform: rotate(-90deg);
+}
+
+.ring-bg {
+    fill: none;
+    stroke: #E5DFCF;
+    stroke-width: 10;
+}
+
+.ring-progress {
+    fill: none;
+    stroke: #1A2A6C;
+    stroke-width: 10;
+    stroke-linecap: round;
+    stroke-dasharray: 314;
+    stroke-dashoffset: 314;
+    transition: stroke-dashoffset 1.2s ease;
+}
+
+.ring-text {
+    font-size: 30px;
+    font-weight: 700;
+    color: #1A2A6C;
+}
+
+.ring-label {
+    font-size: 13px;
+    color: #5C5A52;
+}
+
+/* ================= NAVIGATION ================= */
+
+.month-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
+}
+
+.month-nav a {
+    text-decoration: none;
+    color: #FFD97D;
+    font-weight: 600;
+    transition: 0.2s ease;
+}
+
+.month-nav a:hover {
+    color: #FFFFFF;
+}
+
+/* ================= SUBJECT FILTER ================= */
+
+#subjectSelect {
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: none;
+    background: #F8F5E9;
+    color: #1A2A6C;
+    margin-bottom: 30px;
+    font-weight: 500;
+}
+
+/* ================= SUBJECT CARD ================= */
+
+.subject-card {
+    background: #F8F5E9;
+    color: #1A2A6C;
+    border-radius: 20px;
+    padding: 26px;
+    display: flex;
+    gap: 30px;
+    margin-bottom: 32px;
+    box-shadow: 0 14px 32px rgba(0,0,0,.35);
+    transition: transform .3s ease;
+    position: relative;
+}
+
+.subject-card::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 8px;
+    height: 100%;
+    background: #85795f;
+    border-radius: 20px 0 0 20px;
+}
+
+.subject-card:hover {
+    transform: translateY(-6px);
+}
+
+/* ================= LEFT SIDE ================= */
+
+.subject-left {
+    flex: 1;
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+    margin: 14px 0;
+}
+
+/* Buttons */
+
+.btn {
+    padding: 8px 14px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all .2s ease;
+}
+
+/* Present */
+.btn.present {
+    background: #E3F2FD;
+    color: #1A2A6C;
+}
+
+/* Absent */
+.btn.absent {
+    background: #FAD4D4;
+    color: #8B1E1E;
+}
+
+/* Cancelled */
+.btn.cancelled {
+    background: #FFF2CC;
+    color: #8A6B00;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+}
+
+/* Attendance labels */
+
+.safe { color: #1A2A6C; font-weight: 600; }
+.danger { color: #C0392B; font-weight: 600; }
+
+/* Progress bar */
+
+.progress-track {
+    height: 12px;
+    background: #E5DFCF;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 20px;
+}
+
+/* ================= CALENDAR ================= */
+
+.calendar-box {
+    width: 280px;
+    background: #FFFFFF;
+    border-radius: 18px;
+    padding: 18px;
+    border: none;
+    box-shadow: 0 8px 22px rgba(0,0,0,.25);
+}
+
+.calendar-box strong {
+    color: #1A2A6C;
+}
+
+/* Header */
+
+.calendar-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    font-weight: 600;
+    color: #1A2A6C;
+    margin: 12px 0 8px 0;
+}
+
+/* Grid */
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+}
+
+/* Day cell */
+
+.day-cell {
+    height: 38px;
+    border-radius: 10px;
+    background: #F8F5E9;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all .2s ease;
+}
+
+.day-cell:hover {
+    background: #FFD97D;
+    color: #1A2A6C;
+    transform: scale(1.07);
+}
+
+/* Status icons */
+
+.status.present { color: #1A2A6C; }
+.status.absent { color: #C0392B; }
+.status.cancelled { color: #B8860B; }
+
+</style>
+ 
+{% endblock %}

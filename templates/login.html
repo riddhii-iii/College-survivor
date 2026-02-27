@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login · College Survivor</title>
+    <meta charset="UTF-8">
+
+<style>
+
+/* ================= BACKGROUND ================= */
+
+body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: "Segoe UI", sans-serif;
+
+    background: linear-gradient(135deg, #0f1c3f, #1a2a6c);
+    perspective: 1200px;
+    overflow: hidden;
+}
+
+/* Soft glowing background orbs */
+
+body::before,
+body::after {
+    content: "";
+    position: absolute;
+    width: 350px;
+    height: 350px;
+    border-radius: 50%;
+    background: rgba(255, 217, 125, 0.2);
+    filter: blur(120px);
+    z-index: 0;
+}
+
+body::before {
+    top: -100px;
+    left: -120px;
+}
+
+body::after {
+    bottom: -120px;
+    right: -100px;
+}
+
+/* ================= 3D FLOATING CARD ================= */
+
+.login-card {
+    position: relative;
+    z-index: 2;
+
+    width: 420px;
+    padding: 55px 45px;
+
+    background: rgba(248, 245, 233, 0.95);
+    border-radius: 30px;
+
+    box-shadow:
+        0 60px 120px rgba(0,0,0,0.6),
+        0 0 0 1px rgba(255,255,255,0.1) inset;
+
+    transform-style: preserve-3d;
+    transition: transform 0.3s ease;
+}
+
+/* Floating animation */
+
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-12px); }
+    100% { transform: translateY(0px); }
+}
+
+.login-card {
+    animation: float 6s ease-in-out infinite;
+}
+
+/* ================= TITLE ================= */
+
+.login-card h1 {
+    text-align: center;
+    color: #1A2A6C;
+    margin-bottom: 10px;
+}
+
+.tagline {
+    text-align: center;
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 35px;
+}
+
+/* ================= INPUT FIELDS ================= */
+
+.input-group {
+    position: relative;
+    margin-bottom: 22px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 14px 45px 14px 45px;
+    border-radius: 16px;
+    border: 2px solid transparent;
+    background: #ffffff;
+    font-size: 14px;
+    outline: none;
+    transition: 0.3s ease;
+    box-sizing: border-box;
+}
+
+.input-group input:focus {
+    border-color: #1A2A6C;
+    box-shadow: 0 0 0 4px rgba(26,42,108,0.15);
+}
+
+/* Left icon */
+
+.input-icon {
+    position: absolute;
+    top: 50%;
+    left: 15px;
+    transform: translateY(-50%);
+    font-size: 16px;
+    color: #1A2A6C;
+}
+
+/* Toggle password icon */
+
+.toggle-password {
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-size: 16px;
+    color: #1A2A6C;
+}
+
+/* ================= BUTTON ================= */
+
+.login-btn {
+    width: 100%;
+    padding: 15px;
+    border-radius: 18px;
+    border: none;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+
+    background: linear-gradient(90deg, #1A2A6C, #FFD97D);
+    color: white;
+
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    transition: 0.3s ease;
+}
+
+.login-btn:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 30px 50px rgba(0,0,0,0.5);
+}
+
+/* ================= LINKS ================= */
+
+.forgot {
+    text-align: right;
+    margin-bottom: 18px;
+}
+
+.forgot a {
+    font-size: 13px;
+    color: #1A2A6C;
+    text-decoration: none;
+}
+
+.register {
+    margin-top: 25px;
+    text-align: center;
+    font-size: 14px;
+}
+
+.register a {
+    color: #1A2A6C;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+/* ================= ERROR ================= */
+
+.error {
+    margin-bottom: 15px;
+    color: #d9534f;
+    font-size: 14px;
+    text-align: center;
+}
+
+/* ================= STRONG 3D TILT ================= */
+
+constRotateX = 0;
+constRotateY = 0;
+
+</style>
+</head>
+
+<body>
+
+<div class="login-card" id="card">
+
+    <h1>Welcome Back 👋</h1>
+    <p class="tagline">Track. Survive. Graduate. 🎓</p>
+
+    {% if error %}
+        <div class="error">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST">
+
+        <!-- USERNAME -->
+        <div class="input-group">
+            <span class="input-icon">👤</span>
+            <input type="text" name="name" placeholder="Username" required>
+        </div>
+
+        <!-- PASSWORD -->
+        <div class="input-group">
+            <span class="input-icon">🔒</span>
+            <input type="password" name="password" id="password" placeholder="Password" required>
+            <span class="toggle-password" onclick="togglePassword()">👁</span>
+        </div>
+
+        <div class="forgot">
+            <a href="#">Forgot password?</a>
+        </div>
+
+        <button type="submit" class="login-btn">Login</button>
+
+        <div class="register">
+            Don’t have an account?
+            <a href="/register">Register</a>
+        </div>
+
+    </form>
+</div>
+
+<script>
+
+/* SHOW / HIDE PASSWORD */
+function togglePassword() {
+    const input = document.getElementById("password");
+    input.type = input.type === "password" ? "text" : "password";
+}
+
+/* STRONG 3D MOUSE TILT */
+
+const card = document.getElementById("card");
+
+document.addEventListener("mousemove", (e) => {
+    const x = (window.innerWidth / 2 - e.pageX) / 20;
+    const y = (window.innerHeight / 2 - e.pageY) / 20;
+    card.style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
+});
+
+document.addEventListener("mouseleave", () => {
+    card.style.transform = "rotateY(0deg) rotateX(0deg)";
+});
+
+</script>
+
+</body>
+</html>
+
+
+

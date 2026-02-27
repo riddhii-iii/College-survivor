@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="profile-wrapper">
+
+    <div class="profile-card">
+
+        <h2>👤 Your Profile</h2>
+
+        <form method="POST">
+
+            <label>Name</label>
+            <input type="text" name="name" value="{{ user[0] }}">
+
+            <label>Email</label>
+            <input type="email" name="email" value="{{ user[1] }}">
+
+            <button class="btn">Save Changes</button>
+        </form>
+
+        <hr>
+
+        <h3>📅 Account Created</h3>
+        <p>{{ user[2] }}</p>
+
+        <hr>
+
+        <h3>📊 Activity Summary</h3>
+        <p>Subjects: {{ total_subjects }}</p>
+        <p>Deadlines: {{ total_deadlines }}</p>
+        <p>Attendance Entries: {{ total_attendance }}</p>
+
+        <canvas id="profileChart" width="400" height="120"></canvas>
+
+        <hr>
+
+        <form method="POST" action="/delete-account">
+            <button style="background:#d9534f;color:white;">
+                Delete Account
+            </button>
+        </form>
+
+    </div>
+
+</div>
+
+<script>
+const data = {{ attendance_trend | tojson }};
+
+if (data.length > 1) {
+    const c = document.getElementById("profileChart");
+    const ctx = c.getContext("2d");
+    const w = c.width, h = c.height;
+    const max = Math.max(...data);
+    const min = Math.min(...data);
+
+    ctx.strokeStyle = "#1C2E5A";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+
+    data.forEach((v,i)=>{
+        const x = i * (w/(data.length-1));
+        const y = h - (v-min)*(h/(max-min||1));
+        i ? ctx.lineTo(x,y) : ctx.moveTo(x,y);
+    });
+
+    ctx.stroke();
+}
+</script>
+
+{% endblock %}
+
+
