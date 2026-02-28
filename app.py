@@ -933,15 +933,7 @@ def init_db():
         db.executescript(f.read())
     db.commit()
 
-#-----temp-----
-@app.route("/initdb")
-def initialize_database():
-    db = get_db()
-    schema_path = os.path.join(os.path.dirname(__file__), "schema.sql")
-    with open(schema_path, "r") as f:
-        db.executescript(f.read())
-    db.commit()
-    return "Database initialized!"
+
 
 
 # -------------------- RUN --------------------
