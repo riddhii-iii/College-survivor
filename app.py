@@ -933,8 +933,15 @@ def init_db():
         db.executescript(f.read())
     db.commit()
 
-with app.app_context():
-    init_db()
+#-----temp-----
+@app.route("/initdb")
+def initialize_database():
+    db = get_db()
+    with open("schema.sql", "r") as f:
+        db.executescript(f.read())
+    db.commit()
+    return "Database initialized!"
+
 
 # -------------------- RUN --------------------
 

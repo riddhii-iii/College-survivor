@@ -1,48 +1,41 @@
--- ===============================
--- USERS TABLE
--- ===============================
-CREATE TABLE IF NOT EXISTS users (
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS subjects;
+DROP TABLE IF EXISTS attendance;
+DROP TABLE IF EXISTS deadlines;
+
+CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL UNIQUE,
-    email TEXT UNIQUE,
+    email TEXT,
     password TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- ===============================
--- SUBJECTS TABLE
--- ===============================
-CREATE TABLE IF NOT EXISTS subjects (
+CREATE TABLE subjects (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    name TEXT NOT NULL,
+    user_id INTEGER,
+    name TEXT,
     credits INTEGER,
     attendance_required_percent INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
--- ===============================
--- ATTENDANCE TABLE
--- ===============================
-CREATE TABLE IF NOT EXISTS attendance (
+CREATE TABLE attendance (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    subject_id INTEGER NOT NULL,
-    date TEXT NOT NULL,
-    status TEXT CHECK(status IN ('Present', 'Absent')) NOT NULL,
-    FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE
+    subject_id INTEGER,
+    date TEXT,
+    status TEXT,
+    FOREIGN KEY (subject_id) REFERENCES subjects(id)
 );
 
--- ===============================
--- DEADLINES TABLE
--- ===============================
-CREATE TABLE IF NOT EXISTS deadlines (
+CREATE TABLE deadlines (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    subject_id INTEGER NOT NULL,
-    title TEXT NOT NULL,
-    due_date TEXT NOT NULL,
+    subject_id INTEGER,
+    title TEXT,
+    due_date TEXT,
     type TEXT,
-    priority TEXT CHECK(priority IN ('Low', 'Medium', 'High')),
+    priority TEXT,
     completed INTEGER DEFAULT 0,
-    FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE
+    FOREIGN KEY (subject_id) REFERENCES subjects(id)
 );
