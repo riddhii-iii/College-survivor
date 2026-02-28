@@ -933,7 +933,9 @@ def init_db():
         db.executescript(f.read())
     db.commit()
 
-
+# AUTO INITIALIZE DATABASE
+with app.app_context():
+    init_db()
 
 
 # -------------------- RUN --------------------

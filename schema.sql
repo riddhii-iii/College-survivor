@@ -39,3 +39,12 @@ CREATE TABLE deadlines (
     completed INTEGER DEFAULT 0,
     FOREIGN KEY (subject_id) REFERENCES subjects(id)
 );
+CREATE TABLE IF NOT EXISTS timetable (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    subject_id INTEGER NOT NULL,
+    weekday INTEGER NOT NULL,
+    start_time TEXT,
+    end_time TEXT,
+    room TEXT,
+    FOREIGN KEY (subject_id) REFERENCES subjects(id)
+);
