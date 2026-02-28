@@ -925,6 +925,17 @@ def logout():
     return redirect("/login")
 
 
+import os
+
+def init_db():
+    db = get_db()
+    with open("schema.sql", "r") as f:
+        db.executescript(f.read())
+    db.commit()
+
+with app.app_context():
+    init_db()
+
 # -------------------- RUN --------------------
 
 if __name__ == "__main__":
