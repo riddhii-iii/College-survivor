@@ -37,7 +37,7 @@ def calculate_attendance_percentage(subject_id, db):
     # Get subject weight
     cur.execute("""
         SELECT attendance_weight
-        FROM subject
+        FROM subjects
         WHERE id = ?
     """, (subject_id,))
     
@@ -78,7 +78,7 @@ def classes_can_skip(subject_id, db):
     total, present = cur.fetchone()
     present = present or 0
 
-    cur.execute("SELECT attendance_required_percent FROM subject WHERE id = ?", (subject_id,))
+    cur.execute("SELECT attendance_required_percent FROM subjects WHERE id = ?", (subject_id,))
     row = cur.fetchone()
     required = row[0] if row else 75
 
@@ -93,7 +93,7 @@ def has_urgent_deadline(subject_id, db):
     cur = db.cursor()
     today = date.today()
     cur.execute("""
-        SELECT due_date FROM deadline
+        SELECT due_date FROM deadlines
         WHERE subject_id = ? AND completed = 0
     """, (subject_id,))
     for (due_date,) in cur.fetchall():
@@ -106,7 +106,7 @@ def has_urgent_deadline(subject_id, db):
 def has_assignment_overload(subject_id, db):
     cur = db.cursor()
     cur.execute("""
-        SELECT COUNT(*) FROM deadline
+        SELECT COUNT(*) FROM deadlines
         WHERE subject_id = ? AND type = 'assignment' AND completed = 0
     """, (subject_id,))
     return cur.fetchone()[0] > 2
@@ -132,7 +132,7 @@ def dashboard():
     today = date.today()
     weekday = today.weekday()
 
-    cur.execute("SELECT id FROM subject WHERE user_id = ?", (user_id,))
+    cur.execute("SELECT id FROM subjects WHERE user_id = ?", (user_id,))
     subject_ids = [row[0] for row in cur.fetchall()]
 
     subjects_at_risk = 0
@@ -152,7 +152,7 @@ def dashboard():
         FROM attendance
         WHERE date >= date('now', '-6 days')
           AND status != 'cancelled'
-          AND subject_id IN (SELECT id FROM subject WHERE user_id = ?)
+          AND subject_id IN (SELECT id FROM subjects WHERE user_id = ?)
     """, (user_id,))
     total, present = cur.fetchone()
     present = present or 0
@@ -164,7 +164,7 @@ def dashboard():
         FROM attendance
         WHERE date BETWEEN date('now', '-13 days') AND date('now', '-7 days')
           AND status != 'cancelled'
-          AND subject_id IN (SELECT id FROM subject WHERE user_id = ?)
+          AND subject_id IN (SELECT id FROM subjects WHERE user_id = ?)
     """, (user_id,))
     last_total, last_present = cur.fetchone()
     last_present = last_present or 0
@@ -186,17 +186,17 @@ def dashboard():
 
     # Urgent deadlines
     cur.execute("""
-        SELECT COUNT(*) FROM deadline
+        SELECT COUNT(*) FROM deadlines
         WHERE completed = 0
           AND due_date BETWEEN date('now') AND date('now', '+7 days')
-          AND subject_id IN (SELECT id FROM subject WHERE user_id = ?)
+          AND subject_id IN (SELECT id FROM subjects WHERE user_id = ?)
     """, (user_id,))
     urgent_deadlines = cur.fetchone()[0] or 0
 
     # Today's classes
     cur.execute("""
         SELECT COUNT(*) FROM timetable
-        WHERE weekday = ? AND subject_id IN (SELECT id FROM subject WHERE user_id = ?)
+        WHERE weekday = ? AND subject_id IN (SELECT id FROM subjects WHERE user_id = ?)
     """, (weekday, user_id))
     result = cur.fetchone()
     todays_classes = result[0] if result else 0
@@ -208,7 +208,7 @@ def dashboard():
         FROM attendance
         WHERE date >= date('now', '-6 days')
           AND status != 'cancelled'
-          AND subject_id IN (SELECT id FROM subject WHERE user_id = ?)
+          AND subject_id IN (SELECT id FROM subjects WHERE user_id = ?)
         GROUP BY date ORDER BY date
     """, (user_id,))
     attendance_trend = [round(row[1]) for row in cur.fetchall() if row[1] is not None]
@@ -270,7 +270,7 @@ def attendance():
         FROM attendance
         WHERE strftime('%Y', date) = ? AND strftime('%m', date) = ?
           AND status != 'cancelled'
-          AND subject_id IN (SELECT id FROM subject WHERE user_id = ?)
+          AND subject_id IN (SELECT id FROM subjects WHERE user_id = ?)
     """, (str(year), f"{month:02d}", user_id))
     total, present = cur.fetchone()
     total = total or 0
@@ -394,7 +394,7 @@ def attendance_calendar(subject_id):
 
     db = get_db()
     cur = db.cursor()
-    cur.execute("SELECT name FROM subject WHERE id = ?", (subject_id,))
+    cur.execute("SELECT name FROM subjects WHERE id = ?", (subject_id,))
     row = cur.fetchone()
     if not row:
         db.close()
@@ -430,7 +430,7 @@ def deadlines():
     cur = db.cursor()
     cur.execute("""
         SELECT deadline.id, deadline.title, deadline.due_date, deadline.completed, subject.name
-        FROM deadline
+        FROM deadlines
         JOIN subject ON deadline.subject_id = subject.id
         WHERE subject.user_id = ?
         ORDER BY deadline.due_date
@@ -466,7 +466,7 @@ def add_deadline():
         return redirect("/deadlines")
 
     # GET request — show form
-    cur.execute("SELECT id, name FROM subject WHERE user_id = ?", (user_id,))
+    cur.execute("SELECT id, name FROM subjects WHERE user_id = ?", (user_id,))
     subjects = cur.fetchall()
     db.close()
 
@@ -515,7 +515,7 @@ def weekly_danger():
 
     db = get_db()
     cur = db.cursor()
-    cur.execute("SELECT id, name FROM subject WHERE user_id = ?", (session["user_id"],))
+    cur.execute("SELECT id, name FROM subjects WHERE user_id = ?", (session["user_id"],))
     subjects = cur.fetchall()
 
     danger_list = []
@@ -546,7 +546,7 @@ def view_subjects():
     cur = db.cursor()
     cur.execute("""
         SELECT id, name, credits, attendance_required_percent, attendance_weight
-        FROM subject WHERE user_id = ?
+        FROM subjects WHERE user_id = ?
     """, (user_id,))
     rows = cur.fetchall()
     db.close()
@@ -573,7 +573,7 @@ def add_subject():
         attendance_req = request.form["attendance_required"]
         weight = request.form["attendance_weight"]
         cur.execute("""
-            INSERT INTO subject (user_id, name, credits, attendance_required_percent, attendance_weight, created_at)
+            INSERT INTO subjects (user_id, name, credits, attendance_required_percent, attendance_weight, created_at)
             VALUES (?, ?, ?, ?, ?, ?)
         """, (user_id, name, credits, attendance_req, weight, date.today().isoformat()))
         db.commit()
@@ -606,7 +606,7 @@ def edit_subject(subject_id):
         db.close()
         return redirect("/subjects")
 
-    cur.execute("SELECT * FROM subject WHERE id = ?", (subject_id,))
+    cur.execute("SELECT * FROM subjects WHERE id = ?", (subject_id,))
     subject = cur.fetchone()
     db.close()
     return render_template("edit_subject.html", subject=subject)
@@ -621,8 +621,8 @@ def delete_subject(subject_id):
     cur = db.cursor()
     cur.execute("DELETE FROM attendance WHERE subject_id = ?", (subject_id,))
     cur.execute("DELETE FROM timetable WHERE subject_id = ?", (subject_id,))
-    cur.execute("DELETE FROM deadline WHERE subject_id = ?", (subject_id,))
-    cur.execute("DELETE FROM subject WHERE id = ?", (subject_id,))
+    cur.execute("DELETE FROM deadlines WHERE subject_id = ?", (subject_id,))
+    cur.execute("DELETE FROM subjects WHERE id = ?", (subject_id,))
     db.commit()
     db.close()
     return redirect("/subjects")
@@ -652,7 +652,7 @@ def timetable():
         db.close()
         return redirect("/timetable")
 
-    cur.execute("SELECT id, name FROM subject WHERE user_id = ?", (user_id,))
+    cur.execute("SELECT id, name FROM subjects WHERE user_id = ?", (user_id,))
     subjects = cur.fetchall()
 
     cur.execute("SELECT subject_id, weekday FROM timetable WHERE user_id = ?", (user_id,))
@@ -695,15 +695,15 @@ def profile():
 
     # ================= ACTIVITY SUMMARY =================
     cur.execute(
-        "SELECT COUNT(*) FROM subject WHERE user_id = ?",
+        "SELECT COUNT(*) FROM subjects WHERE user_id = ?",
         (user_id,)
     )
     total_subjects = cur.fetchone()[0]
 
     cur.execute("""
-        SELECT COUNT(*) FROM deadline
+        SELECT COUNT(*) FROM deadlines
         WHERE subject_id IN (
-            SELECT id FROM subject WHERE user_id = ?
+            SELECT id FROM subjects WHERE user_id = ?
         )
     """, (user_id,))
     total_deadlines = cur.fetchone()[0]
@@ -711,7 +711,7 @@ def profile():
     cur.execute("""
         SELECT COUNT(*) FROM attendance
         WHERE subject_id IN (
-            SELECT id FROM subject WHERE user_id = ?
+            SELECT id FROM subjects WHERE user_id = ?
         )
         AND status != 'cancelled'
     """, (user_id,))
@@ -724,7 +724,7 @@ def profile():
         FROM attendance
         WHERE status != 'cancelled'
           AND subject_id IN (
-              SELECT id FROM subject WHERE user_id = ?
+              SELECT id FROM subjects WHERE user_id = ?
           )
         GROUP BY date
         ORDER BY date
@@ -899,17 +899,17 @@ def delete_account():
 
     cur.execute("""
         DELETE FROM attendance
-        WHERE subject_id IN (SELECT id FROM subject WHERE user_id = ?)
+        WHERE subject_id IN (SELECT id FROM subjects WHERE user_id = ?)
     """, (user_id,))
     cur.execute("""
-        DELETE FROM deadline
-        WHERE subject_id IN (SELECT id FROM subject WHERE user_id = ?)
+        DELETE FROM deadlines
+        WHERE subject_id IN (SELECT id FROM subjects WHERE user_id = ?)
     """, (user_id,))
     cur.execute("""
         DELETE FROM timetable
-        WHERE subject_id IN (SELECT id FROM subject WHERE user_id = ?)
+        WHERE subject_id IN (SELECT id FROM subjects WHERE user_id = ?)
     """, (user_id,))
-    cur.execute("DELETE FROM subject WHERE user_id = ?", (user_id,))
+    cur.execute("DELETE FROM subjects WHERE user_id = ?", (user_id,))
     cur.execute("DELETE FROM users WHERE id = ?", (user_id,))
     db.commit()
     db.close()
@@ -937,8 +937,7 @@ with app.app_context():
     init_db()
 
 # -------------------- RUN --------------------
-with app.app_context():
-    init_db()
-    
+
+
 if __name__ == "__main__":
     app.run(debug=True)
