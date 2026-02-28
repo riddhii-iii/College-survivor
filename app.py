@@ -5,7 +5,12 @@ import os
 from datetime import date
 from flask import Flask, render_template, redirect, request, session
 from werkzeug.security import generate_password_hash, check_password_hash
+import smtplib
+from email.mime.text import MIMEText
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 print("DB PATH:", os.path.abspath("college.db"))
 
 app = Flask(__name__)
@@ -467,6 +472,40 @@ def add_deadline():
 
     return render_template("add_deadline.html", subjects=subjects)
 
+#--------- EMAIL REMINDER --------
+def send_email(to_email, subject, body):
+    msg = MIMEText(body)
+    msg["Subject"] = subject
+    msg["From"] = os.getenv("EMAIL_USER")
+    msg["To"] = to_email
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+        server.login(os.getenv("EMAIL_USER"), os.getenv("EMAIL_PASS"))
+        server.sendmail(msg["From"], [to_email], msg.as_string())
+
+#---------WEEKLY REPORT EMAIL --------
+@app.route("/send-weekly-report")
+def send_weekly_report():
+    db = get_db()
+    cur = db.cursor()
+
+    cur.execute("SELECT email, name FROM users WHERE email IS NOT NULL")
+    users = cur.fetchall()
+
+    for email, name in users:
+        # Simple demo report
+        subject = "Your Weekly Attendance Report 📊"
+        body = f"""
+Hello {name},
+
+Here is your weekly attendance summary from College Survivor.
+
+Keep pushing 💪
+"""
+
+        send_email(email, subject, body)
+
+    return "Weekly reports sent successfully!"
 # -------- WEEKLY DANGER --------
 
 @app.route("/weekly-danger")

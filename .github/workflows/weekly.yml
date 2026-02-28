@@ -1,0 +1,13 @@
+name: Weekly Report Scheduler
+
+on:
+  schedule:
+    - cron: '0 6 * * 0'   # Every Sunday at 6 AM UTC
+  workflow_dispatch:      # Allows manual trigger
+
+jobs:
+  call-api:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Weekly Report Endpoint
+        run: curl https://college-survivor.onrender.com/send-weekly-report
