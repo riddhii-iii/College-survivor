@@ -1,12 +1,17 @@
 # Python cache
 __pycache__/
 *.pyc
+*.pyo
 
 # Local database
 college.db
+*.db
+*.db-journal
+*.sqlite3
 
 # Environment variables
 .env
+.env.*
 
 # VS Code
 .vscode/
