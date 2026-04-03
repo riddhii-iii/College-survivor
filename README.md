@@ -48,7 +48,7 @@ It reflects not just development, but also problem-solving, persistence, and sys
 ![Timetable](timetable.png)
 
 ### Weekly Report
-![Weekly Report](weekly report.png)
+![Weekly Report](weekly_report.png)
 
 ### Login Page
 ![Login](login.png)
