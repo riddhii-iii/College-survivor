@@ -1,32 +1,42 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block content %}
 
 <div class="deadline-page">
 
     <div class="header-row">
-        <h1>🌼 Deadlines</h1>
-        <a href="/add-deadline" class="add-btn">＋ Add Deadline</a>
+        <h1>Deadlines</h1>
+        <a href="/add-deadline" class="add-btn">Add Deadline</a>
     </div>
 
     {% if deadlines %}
 
     <div class="deadline-grid">
         {% for d in deadlines %}
-        <div class="deadline-card">
+        <div class="deadline-card {% if d[5] %}done{% endif %} priority-{{ (d[4] or 'medium')|lower }}">
 
             <div class="deadline-top">
-                <h3>{{ d[2] }}</h3>
-                <span class="subject-pill">{{ d[1] }}</span>
+                <h3>{{ d[6] }}</h3>
+                <span class="subject-pill">{{ d[4] or "medium" }}</span>
             </div>
 
             <div class="deadline-info">
-                <p><strong>📅 Due:</strong> {{ d[3] }}</p>
-                <p><strong>📌 Type:</strong> {{ d[4] }}</p>
-                <p><strong>🔥 Priority:</strong> {{ d[5] }}</p>
+                <p><strong>Title:</strong> {{ d[1] }}</p>
+                <p><strong>Due:</strong> {{ d[2] }}</p>
+                <p><strong>Type:</strong> {{ d[3] or "General" }}</p>
+                <p><strong>Priority:</strong> <span class="priority-badge">{{ d[4] or "medium" }}</span></p>
+                <p><strong>Status:</strong> {{ "Done" if d[5] else "Pending" }}</p>
             </div>
 
             <div class="deadline-actions">
-                <a href="#" class="mark-btn">✔ Mark Done</a>
+                <form method="POST" action="/deadlines/{{ d[0] }}/toggle">
+                    <button type="submit" class="action-btn toggle-btn">
+                        {{ "Mark Pending" if d[5] else "Mark Done" }}
+                    </button>
+                </form>
+
+                <form method="POST" action="/deadlines/{{ d[0] }}/delete" onsubmit="return confirm('Delete this deadline?');">
+                    <button type="submit" class="action-btn delete-btn">Delete</button>
+                </form>
             </div>
 
         </div>
@@ -36,7 +46,7 @@
     {% else %}
 
     <div class="empty-state">
-        🌻 No upcoming deadlines. You're glowing.
+        No upcoming deadlines.
     </div>
 
     {% endif %}
@@ -44,9 +54,6 @@
 </div>
 
 <style>
-
-/* ================= PAGE ================= */
-
 .deadline-page {
     background: linear-gradient(135deg, #0F1C3F 0%, #1C2E5A 60%, #F8F5E9 100%);
     min-height: 100vh;
@@ -54,8 +61,6 @@
     font-family: system-ui;
     color: #1C2E5A;
 }
-
-/* ================= HEADER ================= */
 
 .header-row {
     display: flex;
@@ -67,10 +72,8 @@
 .header-row h1 {
     font-size: 32px;
     margin: 0;
-    color: #FFD97D; /* Vanilla gold accent */
+    color: #FFD97D;
 }
-
-/* Add Button */
 
 .add-btn {
     background: #FFD97D;
@@ -88,24 +91,36 @@
     transform: translateY(-3px);
 }
 
-/* ================= GRID ================= */
-
 .deadline-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 28px;
 }
 
-/* ================= CARD ================= */
-
 .deadline-card {
-    background: #F8F5E9; /* Vanilla card */
+    background: #F8F5E9;
     padding: 26px;
     border-radius: 22px;
     box-shadow: 0 20px 45px rgba(0,0,0,0.25);
     position: relative;
     transition: 0.3s ease;
-    border-left: 8px solid #1C2E5A; /* Midnight accent strip */
+    border-left: 8px solid #1C2E5A;
+}
+
+.deadline-card.priority-high {
+    border-left-color: #C0392B;
+}
+
+.deadline-card.priority-medium {
+    border-left-color: #D68910;
+}
+
+.deadline-card.priority-low {
+    border-left-color: #1E8449;
+}
+
+.deadline-card.done {
+    opacity: 0.82;
 }
 
 .deadline-card:hover {
@@ -113,21 +128,31 @@
     box-shadow: 0 25px 55px rgba(0,0,0,0.35);
 }
 
-/* ================= TOP ROW ================= */
-
 .deadline-top {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 18px;
+    gap: 16px;
 }
 
 .deadline-top h3 {
     margin: 0;
     color: #1C2E5A;
+    transition: color 0.2s ease;
 }
 
-/* Subject Pill */
+.deadline-card.priority-high .deadline-top h3 {
+    color: #A61B1B;
+}
+
+.deadline-card.priority-medium .deadline-top h3 {
+    color: #9A5C00;
+}
+
+.deadline-card.priority-low .deadline-top h3 {
+    color: #17643A;
+}
 
 .subject-pill {
     background: #1C2E5A;
@@ -138,36 +163,76 @@
     font-weight: 600;
 }
 
-/* ================= INFO ================= */
-
 .deadline-info p {
     margin: 6px 0;
     color: #444;
     font-weight: 500;
 }
 
-/* ================= ACTION ================= */
+.priority-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    text-transform: capitalize;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.deadline-card.priority-high .priority-badge,
+.deadline-card.priority-high .subject-pill {
+    background: #F8D7DA;
+    color: #A61B1B;
+}
+
+.deadline-card.priority-medium .priority-badge,
+.deadline-card.priority-medium .subject-pill {
+    background: #FCE8C3;
+    color: #9A5C00;
+}
+
+.deadline-card.priority-low .priority-badge,
+.deadline-card.priority-low .subject-pill {
+    background: #DDF3E4;
+    color: #17643A;
+}
 
 .deadline-actions {
+    display: flex;
+    gap: 12px;
     margin-top: 18px;
+    flex-wrap: wrap;
 }
 
-.mark-btn {
-    background: #1C2E5A;
-    color: #FFD97D;
-    padding: 8px 14px;
+.deadline-actions form {
+    margin: 0;
+}
+
+.action-btn {
+    border: none;
     border-radius: 12px;
-    text-decoration: none;
+    padding: 10px 14px;
     font-weight: 600;
-    transition: 0.25s ease;
+    cursor: pointer;
+    transition: 0.2s ease;
 }
 
-.mark-btn:hover {
+.toggle-btn {
+    background: #FFD97D;
+    color: #1C2E5A;
+}
+
+.toggle-btn:hover {
+    background: #FFC857;
+}
+
+.delete-btn {
+    background: #1C2E5A;
+    color: #F8F5E9;
+}
+
+.delete-btn:hover {
     background: #0F1C3F;
-    transform: translateY(-2px);
 }
-
-/* ================= EMPTY ================= */
 
 .empty-state {
     background: #F8F5E9;
@@ -178,7 +243,6 @@
     text-align: center;
     box-shadow: 0 16px 40px rgba(0,0,0,0.25);
 }
-
 </style>
 
 {% endblock %}

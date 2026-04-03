@@ -2,9 +2,6 @@
 {% block content %}
 
 <style>
-
-/* ================= DASHBOARD ONLY STYLES ================= */
-
 h1 {
     font-size: 30px;
     margin-bottom: 6px;
@@ -22,8 +19,6 @@ h1 {
     gap: 26px;
 }
 
-/* CARD */
-
 .card {
     position: relative;
     display: flex;
@@ -33,7 +28,6 @@ h1 {
     border-radius: 22px;
     cursor: pointer;
     overflow: hidden;
-
     background: var(--card-bg);
     box-shadow: 0 16px 40px rgba(0,0,0,0.25);
     transition: transform .25s ease, box-shadow .25s ease;
@@ -55,10 +49,18 @@ h1 {
     border-radius: 22px 0 0 22px;
 }
 
-/* CONTENT */
-
 .icon {
-    font-size: 36px;
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary);
+    background: rgba(26, 42, 108, 0.08);
+    flex-shrink: 0;
 }
 
 .content h2 {
@@ -80,8 +82,6 @@ h1 {
     color: var(--text-muted);
 }
 
-/* PROGRESS */
-
 .progress-wrap { margin-top: 10px; }
 
 .progress-label {
@@ -98,16 +98,9 @@ h1 {
     overflow: hidden;
 }
 
- .progress-fill {
-    background: linear-gradient(
-        90deg,
-        var(--primary, #1C2E5A),
-        var(--accent, #FFD97D)
-    );
+.progress-fill {
+    background: linear-gradient(90deg, var(--primary, #1C2E5A), var(--accent, #FFD97D));
 }
-
-
-/* RIPPLE */
 
 .ripple {
     position: absolute;
@@ -120,97 +113,67 @@ h1 {
 @keyframes ripple {
     to { transform: scale(4); opacity: 0; }
 }
-
 </style>
 
 <h1>Dashboard</h1>
-<div class="subtitle">Your weekly survival overview</div>
+<div class="subtitle">Your weekly academic overview</div>
 
 <div class="dashboard-grid">
-
-    <!-- ATTENDANCE -->
     <div class="card" onclick="go('/attendance', event)">
-        <div class="icon">📊</div>
+        <div class="icon">ATT</div>
         <div class="content">
             <h2>Attendance Health</h2>
             <div class="value count" data-target="{{ overall_attendance }}">0</div>
             <div class="subtext">Average attendance across subjects</div>
             <div class="subtext">{{ attendance_insight }}</div>
-
             <div class="progress-wrap">
-                <div class="progress-label">
-                    This week: {{ weekly_attendance }}%
-                </div>
+                <div class="progress-label">This week: {{ weekly_attendance }}%</div>
                 <div class="progress-bar">
-                    <div class="progress-fill"
-                         style="width: {{ weekly_attendance }}%">
-                    </div>
+                    <div class="progress-fill" style="width: {{ weekly_attendance }}%"></div>
                 </div>
             </div>
-
-            <canvas id="attendanceSparkline"
-                    width="260"
-                    height="60"></canvas>
+            <canvas id="attendanceSparkline" width="260" height="60"></canvas>
         </div>
     </div>
 
-    <!-- RISK -->
     <div class="card" onclick="go('/weekly-danger', event)">
-        <div class="icon">⚠</div>
+        <div class="icon">RISK</div>
         <div class="content">
             <h2>Subjects at Risk</h2>
-            <div class="value count"
-                 data-target="{{ subjects_at_risk }}">0</div>
-            <div class="subtext">
-                Below 80% attendance
-            </div>
+            <div class="value count" data-target="{{ subjects_at_risk }}">0</div>
+            <div class="subtext">Below 80% attendance</div>
         </div>
     </div>
 
-    <!-- DEADLINES -->
     <div class="card" onclick="go('/deadlines', event)">
-        <div class="icon">⏰</div>
+        <div class="icon">DUE</div>
         <div class="content">
             <h2>Coming Up Soon</h2>
-            <div class="value count"
-                 data-target="{{ urgent_deadlines }}">0</div>
-            <div class="subtext">
-                Deadlines in next 7 days
-            </div>
+            <div class="value count" data-target="{{ urgent_deadlines }}">0</div>
+            <div class="subtext">Deadlines in next 7 days</div>
         </div>
     </div>
 
-    <!-- TODAY -->
     <div class="card" onclick="go('/timetable', event)">
-        <div class="icon">📚</div>
+        <div class="icon">TOD</div>
         <div class="content">
-            <h2>Today’s Classes</h2>
-            <div class="value count"
-                 data-target="{{ todays_classes }}">0</div>
-            <div class="subtext">
-                Classes scheduled today
-            </div>
+            <h2>Today's Classes</h2>
+            <div class="value count" data-target="{{ todays_classes }}">0</div>
+            <div class="subtext">Classes scheduled today</div>
         </div>
     </div>
 
-    <!-- SAFE -->
     <div class="card" onclick="go('/subjects', event)">
-        <div class="icon">✅</div>
+        <div class="icon">OK</div>
         <div class="content">
             <h2>On Track</h2>
-            <div class="value count"
-                 data-target="{{ safe_subjects }}">0</div>
-            <div class="subtext">
-                Subjects meeting attendance rules
-            </div>
+            <div class="value count" data-target="{{ safe_subjects }}">0</div>
+            <div class="subtext">Subjects meeting attendance rules</div>
         </div>
     </div>
-
 </div>
 
 <script>
-
-/* Card Ripple + Navigation */
 function go(url, event) {
     const card = event.currentTarget;
     const circle = document.createElement("span");
@@ -223,16 +186,13 @@ function go(url, event) {
     setTimeout(() => location.href = url, 180);
 }
 
-/* Count Animation */
 document.querySelectorAll(".count").forEach(el => {
     const target = parseInt(el.dataset.target) || 0;
     let count = 0;
-
     if (target === 0) {
         el.textContent = 0;
         return;
     }
-
     const interval = setInterval(() => {
         count++;
         el.textContent = count;
@@ -240,7 +200,6 @@ document.querySelectorAll(".count").forEach(el => {
     }, 20);
 });
 
-/* Sparkline */
 const data = {{ attendance_trend | tojson }};
 if (data.length > 1) {
     const c = document.getElementById("attendanceSparkline");
@@ -248,22 +207,16 @@ if (data.length > 1) {
     const w = c.width, h = c.height, p = 8;
     const max = Math.max(...data);
     const min = Math.min(...data);
-
-    ctx.strokeStyle = getComputedStyle(document.body)
-        .getPropertyValue('--primary');
+    ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--primary');
     ctx.lineWidth = 2;
     ctx.beginPath();
-
     data.forEach((v,i)=>{
         const x = p + i*(w-p*2)/(data.length-1);
         const y = h - p - (v-min)*(h-p*2)/(max-min||1);
         i ? ctx.lineTo(x,y) : ctx.moveTo(x,y);
     });
-
     ctx.stroke();
 }
-
 </script>
 
 {% endblock %}
-

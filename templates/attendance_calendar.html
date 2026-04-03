@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>Attendance Calendar</title>
     <style>
         table { border-collapse: collapse; }
@@ -11,7 +12,7 @@
 </head>
 <body>
 
-<h2>📅 {{ subject_name }} — {{ month }}/{{ year }}</h2>
+<h2>{{ subject_name }} - {{ month }}/{{ year }}</h2>
 
 <table>
     <tr>
@@ -27,9 +28,9 @@
             {% else %}
                 {% set date_str = "%04d-%02d-%02d"|format(year, month, day) %}
                 {% if attendance_map.get(date_str) == 'absent' %}
-                    <td class="absent">❌ {{ day }}</td>
+                    <td class="absent">{{ day }}</td>
                 {% elif attendance_map.get(date_str) == 'present' %}
-                    <td class="present">✔ {{ day }}</td>
+                    <td class="present">{{ day }}</td>
                 {% else %}
                     <td>{{ day }}</td>
                 {% endif %}
@@ -40,7 +41,7 @@
 </table>
 
 <br>
-<a href="/attendance">⬅ Back to Attendance</a>
+<a href="/attendance">Back to Attendance</a>
 
 </body>
 </html>
