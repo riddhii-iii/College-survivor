@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    .planner-page {
+        display: grid;
+        gap: 26px;
+    }
+
+    .planner-hero {
+        background: color-mix(in srgb, var(--card-bg) 96%, white);
+        color: var(--text-main);
+        border-radius: 26px;
+        padding: 28px;
+        box-shadow: var(--shadow-strong);
+        outline: 1px solid var(--divider-strong);
+    }
+
+    .planner-hero h1 {
+        color: var(--accent);
+    }
+
+    .planner-copy {
+        margin: 10px 0 0;
+        color: var(--text-muted);
+        line-height: 1.7;
+    }
+
+    .planner-actions {
+        margin-top: 18px;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .planner-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 18px;
+    }
+
+    .planner-stat,
+    .planner-day,
+    .planner-exams {
+        background: var(--card-bg);
+        color: var(--text-main);
+        border-radius: 22px;
+        padding: 22px;
+        box-shadow: var(--shadow-strong);
+        outline: 1px solid var(--divider-strong);
+    }
+
+    .planner-stat strong {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--primary);
+    }
+
+    .planner-stat span,
+    .planner-day p,
+    .planner-exams p {
+        color: var(--text-muted);
+    }
+
+    .planner-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 20px;
+    }
+
+    .planner-day h3,
+    .planner-exams h3 {
+        margin-top: 0;
+        color: var(--primary);
+    }
+
+    .session-list,
+    .exam-list {
+        display: grid;
+        gap: 12px;
+    }
+
+    .session-item,
+    .exam-item {
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: var(--card-bg-strong);
+        border: 1px solid var(--divider-strong);
+    }
+
+    .session-item.completed {
+        opacity: 0.72;
+        background: color-mix(in srgb, var(--success-soft) 55%, var(--card-bg-strong));
+    }
+
+    .session-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .session-controls {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .session-top strong {
+        color: var(--primary);
+    }
+
+    .session-type {
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--accent);
+    }
+
+    .session-note,
+    .exam-meta {
+        margin-top: 8px;
+        color: var(--text-muted);
+        line-height: 1.55;
+        font-size: 14px;
+    }
+
+    .planner-empty {
+        color: var(--text-muted);
+    }
+
+    .status-badge {
+        display: inline-flex;
+        padding: 5px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .status-badge.pending {
+        background: var(--warning-soft);
+        color: var(--warning);
+    }
+
+    .status-badge.done {
+        background: var(--success-soft);
+        color: var(--success);
+    }
+
+    .inline-form {
+        margin: 0;
+    }
+
+    .inline-form button {
+        padding: 8px 12px;
+        border-radius: 10px;
+    }
+</style>
+
+<div class="planner-page">
+    <section class="planner-hero">
+        <h1>Study Planner</h1>
+        <p class="planner-copy">This 7-day plan is generated from your timetable, upcoming deadlines, exams, and attendance pressure so you always have a next move.</p>
+        <div class="planner-actions">
+            <form method="POST" action="/study-planner/reset" class="inline-form">
+                <button type="submit">Reset Progress</button>
+            </form>
+        </div>
+    </section>
+
+    <section class="planner-stats">
+        <div class="planner-stat">
+            <strong>Total Sessions</strong>
+            <span>{{ plan.total_sessions }} suggested blocks for the next 7 days.</span>
+        </div>
+        <div class="planner-stat">
+            <strong>Pending Sessions</strong>
+            <span>{{ plan.pending_sessions }} sessions still left to complete.</span>
+        </div>
+        <div class="planner-stat">
+            <strong>Busy Days</strong>
+            <span>{{ plan.busy_days }} days currently have planned work.</span>
+        </div>
+        <div class="planner-stat">
+            <strong>Exam Focus</strong>
+            <span>{{ exam_countdown|length }} upcoming exam{{ "" if exam_countdown|length == 1 else "s" }} are feeding the plan.</span>
+        </div>
+    </section>
+
+    <section class="planner-grid">
+        {% for day in plan["days"] %}
+        <article class="planner-day">
+            <h3>{{ day["label"] }}</h3>
+            {% if day["items"] %}
+            <div class="session-list">
+                {% for item in day["items"] %}
+                <div class="session-item {% if item['completed'] %}completed{% endif %}">
+                    <div class="session-top">
+                        <strong>{{ item["title"] }}</strong>
+                        <div class="session-controls">
+                            <span class="status-badge {% if item['completed'] %}done{% else %}pending{% endif %}">
+                                {% if item["completed"] %}Done{% else %}Pending{% endif %}
+                            </span>
+                            <span class="session-type">{{ item["duration"] }}</span>
+                        </div>
+                    </div>
+                    <div class="session-note">{{ item["subject"] }} - {{ item["note"] }}</div>
+                    <form method="POST" action="/study-planner/toggle" class="inline-form">
+                        <input type="hidden" name="session_key" value="{{ item['session_key'] }}">
+                        <input type="hidden" name="completed" value="{{ 0 if item['completed'] else 1 }}">
+                        <button type="submit">{% if item["completed"] %}Mark Pending{% else %}Mark Done{% endif %}</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="planner-empty">No focused session suggested for this day.</p>
+            {% endif %}
+        </article>
+        {% endfor %}
+    </section>
+
+    <section class="planner-exams">
+        <h3>Exam Countdown</h3>
+        {% if exam_countdown %}
+        <div class="exam-list">
+            {% for exam in exam_countdown %}
+            <div class="exam-item">
+                <strong>{{ exam.title }}</strong>
+                <div class="exam-meta">{{ exam.subject }} - {{ exam.countdown }} - {{ exam.due_date }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p>No upcoming exams yet.</p>
+        {% endif %}
+    </section>
+</div>
+
+{% endblock %}

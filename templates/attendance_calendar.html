@@ -1,47 +1,91 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Attendance Calendar</title>
-    <style>
-        table { border-collapse: collapse; }
-        td { width: 40px; height: 40px; text-align: center; border: 1px solid #ccc; }
-        .absent { background-color: #ffcccc; }
-        .present { background-color: #ccffcc; }
-    </style>
-</head>
-<body>
+{% extends "base.html" %}
+{% block content %}
 
-<h2>{{ subject_name }} - {{ month }}/{{ year }}</h2>
+<style>
+    .calendar-page {
+        max-width: 760px;
+        margin: 0 auto;
+    }
 
-<table>
-    <tr>
-        <th>Mon</th><th>Tue</th><th>Wed</th>
-        <th>Thu</th><th>Fri</th><th>Sat</th><th>Sun</th>
-    </tr>
+    .calendar-page h2 {
+        color: var(--accent);
+        margin-bottom: 18px;
+    }
 
-    {% for week in calendar %}
+    .calendar-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--card-bg);
+        color: var(--text-main);
+        box-shadow: var(--shadow-strong);
+        border-radius: 18px;
+        overflow: hidden;
+    }
+
+    .calendar-table th,
+    .calendar-table td {
+        width: 14.28%;
+        height: 54px;
+        text-align: center;
+        border: 1px solid var(--divider-strong);
+    }
+
+    .calendar-table th {
+        background: var(--primary-soft);
+        color: var(--primary);
+    }
+
+    .calendar-table td.absent {
+        background: var(--danger-soft);
+        color: var(--danger);
+        font-weight: 700;
+    }
+
+    .calendar-table td.present {
+        background: var(--success-soft);
+        color: var(--success);
+        font-weight: 700;
+    }
+
+    .calendar-page a {
+        display: inline-block;
+        margin-top: 18px;
+        color: var(--accent);
+        text-decoration: none;
+        font-weight: 600;
+    }
+</style>
+
+<div class="calendar-page">
+    <h2>{{ subject_name }} - {{ month }}/{{ year }}</h2>
+
+    <table class="calendar-table">
         <tr>
-        {% for day in week %}
-            {% if day == 0 %}
-                <td></td>
-            {% else %}
-                {% set date_str = "%04d-%02d-%02d"|format(year, month, day) %}
-                {% if attendance_map.get(date_str) == 'absent' %}
-                    <td class="absent">{{ day }}</td>
-                {% elif attendance_map.get(date_str) == 'present' %}
-                    <td class="present">{{ day }}</td>
-                {% else %}
-                    <td>{{ day }}</td>
-                {% endif %}
-            {% endif %}
-        {% endfor %}
+            <th>Mon</th><th>Tue</th><th>Wed</th>
+            <th>Thu</th><th>Fri</th><th>Sat</th><th>Sun</th>
         </tr>
-    {% endfor %}
-</table>
 
-<br>
-<a href="/attendance">Back to Attendance</a>
+        {% for week in calendar %}
+            <tr>
+            {% for day in week %}
+                {% if day == 0 %}
+                    <td></td>
+                {% else %}
+                    {% set date_str = "%04d-%02d-%02d"|format(year, month, day) %}
+                    {% if attendance_map.get(date_str) == 'absent' %}
+                        <td class="absent">{{ day }}</td>
+                    {% elif attendance_map.get(date_str) == 'present' %}
+                        <td class="present">{{ day }}</td>
+                    {% else %}
+                        <td>{{ day }}</td>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+            </tr>
+        {% endfor %}
+    </table>
 
-</body>
-</html>
+    <a href="/attendance">Back to Attendance</a>
+</div>
+
+{% endblock %}

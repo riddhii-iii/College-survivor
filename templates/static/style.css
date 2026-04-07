@@ -6,10 +6,10 @@
 }
 
 .card {
-    background: #ffffff;
+    background: var(--card-bg-strong);
     border-radius: 14px;
     padding: 20px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    box-shadow: var(--shadow-soft);
 }
 
 .card h3 {
@@ -20,7 +20,7 @@
     display: inline-block;
     margin-top: 10px;
     text-decoration: none;
-    color: #6c4cff;
+    color: var(--accent);
     font-weight: 600;
 }
 
@@ -29,7 +29,7 @@
 }
 
 .danger {
-    border-left: 6px solid #ff4d4d;
+    border-left: 6px solid var(--danger);
 }
 .day-cell {
     cursor: pointer;
@@ -39,5 +39,5 @@
 }
 
 .day-cell:hover {
-    background: rgba(0,0,0,0.08);
+    background: var(--primary-soft);
 }

@@ -15,7 +15,7 @@ h1 {
 .dashboard-grid {
     margin-top: 28px;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 26px;
 }
 
@@ -102,6 +102,94 @@ h1 {
     background: linear-gradient(90deg, var(--primary, #1C2E5A), var(--accent, #FFD97D));
 }
 
+.dashboard-section {
+    margin-top: 34px;
+}
+
+.section-title {
+    margin-bottom: 16px;
+    color: var(--accent);
+}
+
+.insight-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+}
+
+.mini-card {
+    background: color-mix(in srgb, var(--card-bg) 96%, white);
+    color: var(--text-main);
+    border-radius: 22px;
+    padding: 22px;
+    box-shadow: var(--shadow-strong);
+    outline: 1px solid var(--divider-strong);
+}
+
+.mini-card h3 {
+    margin-top: 0;
+    color: var(--primary);
+}
+
+.mini-copy {
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+.countdown-list,
+.study-list {
+    display: grid;
+    gap: 12px;
+}
+
+.countdown-item,
+.study-item {
+    padding: 14px 16px;
+    border-radius: 16px;
+    background: var(--card-bg-strong);
+    border: 1px solid var(--divider-strong);
+}
+
+.item-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+}
+
+.item-top strong {
+    color: var(--primary);
+}
+
+.pill {
+    display: inline-flex;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.pill.urgent {
+    background: var(--danger-soft);
+    color: var(--danger);
+}
+
+.pill.soon {
+    background: var(--warning-soft);
+    color: var(--warning);
+}
+
+.pill.planned {
+    background: var(--success-soft);
+    color: var(--success);
+}
+
+.item-meta {
+    margin-top: 8px;
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
 .ripple {
     position: absolute;
     border-radius: 50%;
@@ -154,6 +242,15 @@ h1 {
         </div>
     </div>
 
+    <div class="card" onclick="go('/deadlines', event)">
+        <div class="icon">EXM</div>
+        <div class="content">
+            <h2>Exam Countdown</h2>
+            <div class="value count" data-target="{{ exam_countdown|length }}">0</div>
+            <div class="subtext">Upcoming exams already mapped</div>
+        </div>
+    </div>
+
     <div class="card" onclick="go('/timetable', event)">
         <div class="icon">TOD</div>
         <div class="content">
@@ -169,6 +266,64 @@ h1 {
             <h2>On Track</h2>
             <div class="value count" data-target="{{ safe_subjects }}">0</div>
             <div class="subtext">Subjects meeting attendance rules</div>
+        </div>
+    </div>
+
+    <div class="card" onclick="go('/study-planner', event)">
+        <div class="icon">PLAN</div>
+        <div class="content">
+            <h2>Study Planner</h2>
+            <div class="value count" data-target="{{ study_plan.pending_sessions }}">0</div>
+            <div class="subtext">Pending sessions in the next 7 days</div>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-section">
+    <h2 class="section-title">New Focus Tools</h2>
+    <div class="insight-grid">
+        <div class="mini-card">
+            <h3>Attendance Forecast</h3>
+            <div class="mini-copy">
+                {{ recovery_subjects }} subject{{ "" if recovery_subjects == 1 else "s" }} need close attendance attention right now.
+            </div>
+            <div class="mini-copy">Open Attendance to see recovery targets and safe skips for each class.</div>
+        </div>
+
+        <div class="mini-card">
+            <h3>Exam Countdown</h3>
+            {% if exam_countdown %}
+            <div class="countdown-list">
+                {% for exam in exam_countdown %}
+                <div class="countdown-item">
+                    <div class="item-top">
+                        <strong>{{ exam.title }}</strong>
+                        <span class="pill {{ exam.urgency }}">{{ exam.countdown }}</span>
+                    </div>
+                    <div class="item-meta">{{ exam.subject }} • {{ exam.due_date }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="mini-copy">No upcoming exams yet. Add an exam deadline to start the countdown.</div>
+            {% endif %}
+        </div>
+
+        <div class="mini-card">
+            <h3>Study Planner</h3>
+            {% if next_study_day %}
+            <div class="study-list">
+                <div class="study-item">
+                    <div class="item-top">
+                        <strong>{{ next_study_day["label"] }}</strong>
+                        <span class="pill planned">{{ (next_study_day["items"]|selectattr("completed", "equalto", false)|list)|length }} session{{ "" if ((next_study_day["items"]|selectattr("completed", "equalto", false)|list)|length) == 1 else "s" }}</span>
+                    </div>
+                    <div class="item-meta">Next active study day from your generated 7-day planner.</div>
+                </div>
+            </div>
+            {% else %}
+            <div class="mini-copy">Your next 7 days are currently clear. Once classes or deadlines build up, the planner will suggest sessions here.</div>
+            {% endif %}
         </div>
     </div>
 </div>

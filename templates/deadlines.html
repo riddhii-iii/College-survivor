@@ -1,19 +1,33 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 {% block content %}
 
 <div class="deadline-page">
-
     <div class="header-row">
         <h1>Deadlines</h1>
         <a href="/add-deadline" class="add-btn">Add Deadline</a>
     </div>
 
-    {% if deadlines %}
+    {% if exam_countdown %}
+    <div class="exam-strip">
+        {% for exam in exam_countdown %}
+        <div class="exam-card">
+            <h3>{{ exam.title }}</h3>
+            <p>{{ exam.subject }} - {{ exam.due_date }}</p>
+            <span class="exam-tag {{ exam.urgency }}">{{ exam.countdown }}</span>
+            <div class="exam-actions">
+                <form method="POST" action="/deadlines/{{ exam.id }}/delete" onsubmit="return confirm('Delete this exam block?');">
+                    <button type="submit" class="action-btn delete-btn">Delete</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
+    {% if deadlines %}
     <div class="deadline-grid">
         {% for d in deadlines %}
         <div class="deadline-card {% if d[5] %}done{% endif %} priority-{{ (d[4] or 'medium')|lower }}">
-
             <div class="deadline-top">
                 <h3>{{ d[6] }}</h3>
                 <span class="subject-pill">{{ d[4] or "medium" }}</span>
@@ -38,57 +52,111 @@
                     <button type="submit" class="action-btn delete-btn">Delete</button>
                 </form>
             </div>
-
         </div>
         {% endfor %}
     </div>
-
     {% else %}
-
     <div class="empty-state">
         No upcoming deadlines.
     </div>
-
     {% endif %}
-
 </div>
 
 <style>
 .deadline-page {
-    background: linear-gradient(135deg, #0F1C3F 0%, #1C2E5A 60%, #F8F5E9 100%);
     min-height: 100vh;
     padding: 40px;
     font-family: system-ui;
-    color: #1C2E5A;
+    color: var(--text-main);
 }
 
 .header-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 40px;
+    margin-bottom: 32px;
 }
 
 .header-row h1 {
     font-size: 32px;
     margin: 0;
-    color: #FFD97D;
+    color: var(--accent);
 }
 
 .add-btn {
-    background: #FFD97D;
-    color: #1C2E5A;
+    background: var(--accent);
+    color: var(--text-main);
     padding: 10px 18px;
     border-radius: 14px;
     text-decoration: none;
     font-weight: 600;
     transition: 0.25s ease;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    box-shadow: var(--shadow-soft);
 }
 
 .add-btn:hover {
-    background: #FFC857;
+    background: var(--accent-hover);
     transform: translateY(-3px);
+}
+
+.exam-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 18px;
+    margin-bottom: 30px;
+}
+
+.exam-card {
+    background: color-mix(in srgb, var(--card-bg) 96%, white);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: var(--shadow-strong);
+    outline: 1px solid var(--divider-strong);
+}
+
+.exam-card h3 {
+    margin: 0 0 8px;
+    color: var(--primary);
+}
+
+.exam-card p {
+    margin: 0;
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+.exam-actions {
+    margin-top: 14px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.exam-actions form {
+    margin: 0;
+}
+
+.exam-tag {
+    display: inline-flex;
+    margin-top: 12px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.exam-tag.urgent {
+    background: var(--danger-soft);
+    color: var(--danger);
+}
+
+.exam-tag.soon {
+    background: var(--warning-soft);
+    color: var(--warning);
+}
+
+.exam-tag.planned {
+    background: var(--success-soft);
+    color: var(--success);
 }
 
 .deadline-grid {
@@ -98,30 +166,19 @@
 }
 
 .deadline-card {
-    background: #F8F5E9;
+    background: var(--card-bg);
     padding: 26px;
     border-radius: 22px;
-    box-shadow: 0 20px 45px rgba(0,0,0,0.25);
+    box-shadow: var(--shadow-strong);
     position: relative;
     transition: 0.3s ease;
-    border-left: 8px solid #1C2E5A;
+    border-left: 8px solid var(--primary);
 }
 
-.deadline-card.priority-high {
-    border-left-color: #C0392B;
-}
-
-.deadline-card.priority-medium {
-    border-left-color: #D68910;
-}
-
-.deadline-card.priority-low {
-    border-left-color: #1E8449;
-}
-
-.deadline-card.done {
-    opacity: 0.82;
-}
+.deadline-card.priority-high { border-left-color: var(--danger); }
+.deadline-card.priority-medium { border-left-color: var(--warning); }
+.deadline-card.priority-low { border-left-color: var(--success); }
+.deadline-card.done { opacity: 0.82; }
 
 .deadline-card:hover {
     transform: translateY(-6px);
@@ -138,25 +195,17 @@
 
 .deadline-top h3 {
     margin: 0;
-    color: #1C2E5A;
+    color: var(--primary);
     transition: color 0.2s ease;
 }
 
-.deadline-card.priority-high .deadline-top h3 {
-    color: #A61B1B;
-}
-
-.deadline-card.priority-medium .deadline-top h3 {
-    color: #9A5C00;
-}
-
-.deadline-card.priority-low .deadline-top h3 {
-    color: #17643A;
-}
+.deadline-card.priority-high .deadline-top h3 { color: var(--danger); }
+.deadline-card.priority-medium .deadline-top h3 { color: var(--warning); }
+.deadline-card.priority-low .deadline-top h3 { color: var(--success); }
 
 .subject-pill {
-    background: #1C2E5A;
-    color: #FFD97D;
+    background: var(--primary);
+    color: var(--accent);
     padding: 6px 14px;
     border-radius: 20px;
     font-size: 12px;
@@ -165,7 +214,7 @@
 
 .deadline-info p {
     margin: 6px 0;
-    color: #444;
+    color: var(--text-muted);
     font-weight: 500;
 }
 
@@ -180,20 +229,20 @@
 
 .deadline-card.priority-high .priority-badge,
 .deadline-card.priority-high .subject-pill {
-    background: #F8D7DA;
-    color: #A61B1B;
+    background: var(--danger-soft);
+    color: var(--danger);
 }
 
 .deadline-card.priority-medium .priority-badge,
 .deadline-card.priority-medium .subject-pill {
-    background: #FCE8C3;
-    color: #9A5C00;
+    background: var(--warning-soft);
+    color: var(--warning);
 }
 
 .deadline-card.priority-low .priority-badge,
 .deadline-card.priority-low .subject-pill {
-    background: #DDF3E4;
-    color: #17643A;
+    background: var(--success-soft);
+    color: var(--success);
 }
 
 .deadline-actions {
@@ -217,31 +266,31 @@
 }
 
 .toggle-btn {
-    background: #FFD97D;
-    color: #1C2E5A;
+    background: var(--accent);
+    color: var(--text-main);
 }
 
 .toggle-btn:hover {
-    background: #FFC857;
+    background: var(--accent-hover);
 }
 
 .delete-btn {
-    background: #1C2E5A;
-    color: #F8F5E9;
+    background: var(--primary);
+    color: var(--text-light);
 }
 
 .delete-btn:hover {
-    background: #0F1C3F;
+    background: var(--primary-strong);
 }
 
 .empty-state {
-    background: #F8F5E9;
+    background: var(--card-bg);
     padding: 30px;
     border-radius: 20px;
-    color: #1C2E5A;
+    color: var(--text-main);
     font-weight: 600;
     text-align: center;
-    box-shadow: 0 16px 40px rgba(0,0,0,0.25);
+    box-shadow: var(--shadow-strong);
 }
 </style>
 

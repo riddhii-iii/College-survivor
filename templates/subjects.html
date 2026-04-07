@@ -41,28 +41,29 @@
 </div>
 
 <style>
-.page-wrapper { min-height: 100vh; padding: 40px; background: linear-gradient(135deg, #0F1C3F 0%, #1C2E5A 65%, #F8F5E9 100%); font-family: system-ui; }
-.page-title { color: #FFD97D; font-size: 32px; margin-bottom: 6px; }
-.subtitle { color: #F8F5E9; opacity: 0.85; margin-bottom: 35px; }
+.page-wrapper { min-height: 100vh; padding: 40px; font-family: system-ui; }
+.page-title { color: var(--accent); font-size: 32px; margin-bottom: 6px; }
+.subtitle { color: color-mix(in srgb, var(--primary) 72%, white); opacity: 1; margin-bottom: 35px; }
 .add-btn-wrapper { margin-bottom: 35px; }
-.add-btn { background: #FFD97D; color: #1C2E5A; padding: 12px 22px; border-radius: 16px; text-decoration: none; font-weight: 600; box-shadow: 0 10px 22px rgba(0,0,0,0.25); transition: 0.3s ease; }
-.add-btn:hover { background: #FFE8A3; transform: translateY(-3px); }
+.add-btn { background: var(--accent); color: var(--text-main); padding: 12px 22px; border-radius: 16px; text-decoration: none; font-weight: 600; box-shadow: var(--shadow-soft); transition: 0.3s ease; }
+.add-btn:hover { background: var(--accent-hover); transform: translateY(-3px); }
 .subjects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 28px; }
-.subject-card { background: #F8F5E9; padding: 26px; border-radius: 22px; box-shadow: 0 20px 45px rgba(0,0,0,0.25); transition: 0.3s ease; position: relative; overflow: hidden; }
-.subject-card::before { content: ""; position: absolute; left: 0; top: 0; width: 8px; height: 100%; background: #5d79c2; border-radius: 22px 0 0 22px; }
+.subject-card { background: var(--card-bg); padding: 26px; border-radius: 22px; box-shadow: var(--shadow-strong); transition: 0.3s ease; position: relative; overflow: hidden; color: var(--text-main); outline: 1px solid var(--divider-strong); }
+.subject-card::before { content: ""; position: absolute; left: 0; top: 0; width: 8px; height: 100%; background: var(--primary); border-radius: 22px 0 0 22px; }
 .subject-card:hover { transform: translateY(-6px); box-shadow: 0 25px 55px rgba(0,0,0,0.35); }
-.subject-title { margin-bottom: 16px; color: #1C2E5A; font-size: 20px; }
-.info p { margin: 8px 0; color: #444; font-weight: 500; }
+.subject-title { margin-bottom: 16px; color: var(--primary); font-size: 20px; }
+.info p { margin: 8px 0; color: var(--text-muted); font-weight: 500; }
+.info strong { color: var(--primary-strong); }
 .card-actions { margin-top: 20px; display: flex; gap: 12px; }
-.edit-btn { background: #FFD97D; padding: 8px 16px; border-radius: 12px; text-decoration: none; color: #1C2E5A; font-weight: 600; transition: 0.3s ease; }
-.edit-btn:hover { background: #FFE8A3; }
-.delete-btn { background: #1C2E5A; padding: 8px 16px; border-radius: 12px; text-decoration: none; color: #F8F5E9; font-weight: 600; transition: 0.3s ease; }
-.delete-btn:hover { background: #0F1C3F; }
+.edit-btn { background: var(--accent); padding: 8px 16px; border-radius: 12px; text-decoration: none; color: var(--text-main); font-weight: 600; transition: 0.3s ease; }
+.edit-btn:hover { background: var(--accent-hover); }
+.delete-btn { background: var(--primary); padding: 8px 16px; border-radius: 12px; text-decoration: none; color: var(--text-light); font-weight: 600; transition: 0.3s ease; }
+.delete-btn:hover { background: var(--primary-strong); }
 .extra-class-form { margin-top: 18px; }
-.date-input { padding: 8px; border-radius: 10px; border: none; background: #fff; margin-right: 8px; }
-.extra-btn { background: #5d79c2; color: white; padding: 8px 14px; border-radius: 12px; border: none; cursor: pointer; font-weight: 600; transition: 0.3s ease; }
-.extra-btn:hover { background: #3f5da9; }
-.empty-state { background: #F8F5E9; padding: 28px; border-radius: 20px; color: #1C2E5A; font-weight: 600; text-align: center; box-shadow: 0 20px 45px rgba(0,0,0,0.25); }
+.date-input { padding: 8px; border-radius: 10px; border: 1px solid var(--divider-strong); background: var(--card-bg-strong); color: var(--text-main); margin-right: 8px; }
+.extra-btn { background: var(--primary); color: var(--text-light); padding: 8px 14px; border-radius: 12px; border: none; cursor: pointer; font-weight: 600; transition: 0.3s ease; }
+.extra-btn:hover { background: var(--primary-strong); }
+.empty-state { background: var(--card-bg); padding: 28px; border-radius: 20px; color: var(--text-main); font-weight: 600; text-align: center; box-shadow: var(--shadow-strong); outline: 1px solid var(--divider-strong); }
 </style>
 
 {% endblock %}

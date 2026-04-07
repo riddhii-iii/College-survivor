@@ -64,3 +64,13 @@ CREATE TABLE IF NOT EXISTS click_log (
     timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+CREATE TABLE IF NOT EXISTS study_plan_progress (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    session_key TEXT NOT NULL,
+    completed INTEGER DEFAULT 1,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, session_key),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);

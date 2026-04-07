@@ -3,29 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <title>{{ title or "College Survivor" }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
         :root {
             --bg-gradient: linear-gradient(135deg, #0F1C3F, #1A2A6C);
             --navbar-bg: rgba(15, 28, 63, 0.95);
             --card-bg: #F8F5E9;
+            --card-bg-strong: #FFFFFF;
+            --card-bg-soft: #E5DFCF;
             --text-main: #1A2A6C;
             --text-light: #F8F5E9;
             --text-muted: #6D7280;
             --accent: #FFD97D;
             --accent-hover: #FFCA4D;
             --primary: #1A2A6C;
+            --primary-soft: rgba(26, 42, 108, 0.14);
+            --primary-strong: #0F1C3F;
+            --border-soft: rgba(26, 42, 108, 0.24);
+            --divider: rgba(248, 245, 233, 0.24);
+            --divider-strong: rgba(26, 42, 108, 0.18);
+            --shadow-strong: 0 18px 40px rgba(0, 0, 0, 0.35);
+            --shadow-soft: 0 8px 20px rgba(0, 0, 0, 0.12);
+            --success: #2E7D32;
+            --success-soft: #DDF3E4;
+            --danger: #C0392B;
+            --danger-soft: #F8D7DA;
+            --warning: #A56A00;
+            --warning-soft: #FCE8C3;
+            --info-soft: #E3F2FD;
+            --info-text: #1A2A6C;
+            --surface-tint: rgba(255, 255, 255, 0.12);
         }
 
         body.theme-matcha {
             --bg-gradient: linear-gradient(135deg, #E8F5E9, #FDECEF);
             --navbar-bg: rgba(76, 175, 80, 0.95);
             --card-bg: #FFFFFF;
+            --card-bg-strong: #FFF8FB;
+            --card-bg-soft: #E8F5E9;
             --text-main: #2E2E2E;
             --text-light: #FFFFFF;
             --text-muted: #5E665E;
             --accent: #C2185B;
             --accent-hover: #AD1457;
             --primary: #2E7D32;
+            --primary-soft: rgba(46, 125, 50, 0.1);
+            --primary-strong: #1B5E20;
+            --border-soft: rgba(46, 125, 50, 0.16);
+            --divider: rgba(255, 255, 255, 0.55);
+            --divider-strong: rgba(46, 125, 50, 0.14);
+            --shadow-strong: 0 18px 40px rgba(34, 80, 45, 0.18);
+            --shadow-soft: 0 8px 20px rgba(34, 80, 45, 0.1);
+            --success: #2E7D32;
+            --success-soft: #DDF3E4;
+            --danger: #C2185B;
+            --danger-soft: #F9D9E7;
+            --warning: #A85A1E;
+            --warning-soft: #F9E1CC;
+            --info-soft: #E6F4EA;
+            --info-text: #1B5E20;
+            --surface-tint: rgba(255, 255, 255, 0.55);
+        }
+
+        body.theme-terracotta {
+            --bg-gradient: linear-gradient(135deg, #8C3B2A, #C96A4A 58%, #E7C9A9);
+            --navbar-bg: rgba(92, 42, 30, 0.9);
+            --card-bg: #F5E9DA;
+            --card-bg-strong: #FFF8F0;
+            --card-bg-soft: #E8D2B8;
+            --text-main: #4F2E23;
+            --text-light: #FFF7EF;
+            --text-muted: #7A5A4B;
+            --accent: #E0A13B;
+            --accent-hover: #C88A29;
+            --primary: #A1492F;
+            --primary-soft: rgba(161, 73, 47, 0.14);
+            --primary-strong: #6F2E1E;
+            --border-soft: rgba(111, 46, 30, 0.18);
+            --divider: rgba(255, 247, 239, 0.4);
+            --divider-strong: rgba(111, 46, 30, 0.16);
+            --shadow-strong: 0 18px 40px rgba(74, 32, 22, 0.24);
+            --shadow-soft: 0 8px 20px rgba(74, 32, 22, 0.14);
+            --success: #5C7C37;
+            --success-soft: #DDE7CF;
+            --danger: #A63D2F;
+            --danger-soft: #F1D3CC;
+            --warning: #A86B1F;
+            --warning-soft: #F4DFC2;
+            --info-soft: #EED9C7;
+            --info-text: #7A3E2B;
+            --surface-tint: rgba(255, 248, 240, 0.3);
         }
 
         body {
@@ -49,7 +116,7 @@
             background: var(--navbar-bg);
             backdrop-filter: blur(10px);
             border-radius: 16px;
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+            box-shadow: var(--shadow-strong);
         }
 
         .nav-left {
@@ -87,7 +154,7 @@
 
         .logout {
             text-decoration: none;
-            color: #FF8A80;
+            color: color-mix(in srgb, var(--danger) 75%, white);
             font-weight: 600;
         }
 
@@ -108,7 +175,7 @@
             color: var(--text-main);
             border-radius: 20px;
             padding: 26px 30px;
-            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+            box-shadow: var(--shadow-strong);
             transition: transform 0.25s ease, box-shadow 0.25s ease;
         }
 
@@ -148,7 +215,7 @@
         .progress-bar {
             width: 100%;
             height: 10px;
-            background: rgba(0, 0, 0, 0.1);
+            background: var(--primary-soft);
             border-radius: 20px;
             overflow: hidden;
         }
@@ -161,6 +228,7 @@
     </style>
 </head>
 <body>
+    {% if session.get("user_id") %}
     <div class="navbar">
         <div class="nav-left">
             <a href="/dashboard">Dashboard</a>
@@ -176,12 +244,14 @@
             <select id="themeSwitcher" class="theme-switcher">
                 <option value="">Midnight and Vanilla</option>
                 <option value="theme-matcha">Matcha and Cherry</option>
+                <option value="theme-terracotta">Terracotta and Linen</option>
             </select>
             <a href="/logout" class="logout">Logout</a>
         </div>
     </div>
 
-    <hr style="border-color: rgba(255,255,255,0.2); margin-bottom: 30px;">
+    <hr style="border-color: var(--divider); margin-bottom: 30px;">
+    {% endif %}
 
     {% block content %}{% endblock %}
 
@@ -193,15 +263,25 @@
             localStorage.setItem("site-theme", theme);
         }
 
-        switcher.addEventListener("change", function () {
-            applyTheme(this.value);
-        });
+        if (switcher) {
+            switcher.addEventListener("change", function () {
+                applyTheme(this.value);
+            });
+        }
 
         window.addEventListener("DOMContentLoaded", function () {
             const savedTheme = localStorage.getItem("site-theme");
-            if (savedTheme) {
-                document.body.className = savedTheme;
-                switcher.value = savedTheme;
+            const validThemes = ["", "theme-matcha", "theme-terracotta"];
+            const themeToApply = validThemes.includes(savedTheme) ? savedTheme : "";
+
+            document.body.className = themeToApply;
+
+            if (savedTheme !== themeToApply) {
+                localStorage.setItem("site-theme", themeToApply);
+            }
+
+            if (switcher) {
+                switcher.value = themeToApply;
             }
         });
     </script>

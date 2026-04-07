@@ -3,12 +3,14 @@ import calendar
 import math
 import os
 import smtplib
+import hashlib
 from datetime import date, datetime
 from email.mime.text import MIMEText
 
 from dotenv import load_dotenv
 from flask import Flask, redirect, render_template, request, session
 from werkzeug.security import check_password_hash, generate_password_hash
+from datetime import timedelta
 
 load_dotenv()
 DB_PATH = os.path.abspath('college.db')
@@ -157,6 +159,296 @@ def has_assignment_overload(subject_id, db):
     return cur.fetchone()[0] > 2
 
 
+def get_subject_attendance_snapshot(subject_id, db):
+    cur = db.cursor()
+    cur.execute(
+        """
+        SELECT attendance_required_percent, attendance_weight, name
+        FROM subjects
+        WHERE id = ?
+        """,
+        (subject_id,),
+    )
+    row = cur.fetchone()
+    if not row:
+        return None
+
+    required, weight, name = row
+    required = required or 75
+    weight = weight or 1
+
+    cur.execute(
+        """
+        SELECT COUNT(*),
+               SUM(CASE WHEN status = 'present' THEN 1 ELSE 0 END)
+        FROM attendance
+        WHERE subject_id = ?
+          AND status != 'cancelled'
+        """,
+        (subject_id,),
+    )
+    total, present = cur.fetchone()
+    total = total or 0
+    present = present or 0
+
+    total_hours = total * weight
+    present_hours = present * weight
+    percentage = round((present_hours / total_hours) * 100, 2) if total_hours else 100
+
+    return {
+        "subject_id": subject_id,
+        "name": name,
+        "required": required,
+        "weight": weight,
+        "total": total,
+        "present": present,
+        "percentage": percentage,
+        "skip_left": classes_can_skip(subject_id, db),
+    }
+
+
+def get_attendance_forecast(subject_id, db):
+    snapshot = get_subject_attendance_snapshot(subject_id, db)
+    if not snapshot:
+        return None
+
+    total = snapshot["total"]
+    present = snapshot["present"]
+    required = snapshot["required"]
+    percentage = snapshot["percentage"]
+
+    if total == 0:
+        return {
+            **snapshot,
+            "status": "fresh",
+            "headline": "No attendance trend yet",
+            "message": "Your first few present classes will build your safety buffer.",
+            "misses_until_risk": 0,
+            "classes_to_recover": 0,
+        }
+
+    misses_until_risk = max(0, math.floor((100 * present / required) - total))
+    if percentage < required:
+        classes_to_recover = max(
+            0,
+            math.ceil(((required * total) - (100 * present)) / (100 - required)),
+        )
+        headline = f"Need {classes_to_recover} straight present classes to recover"
+        message = "Focus on the next few classes. Every attended class now has a big effect."
+        status = "recover"
+    else:
+        classes_to_recover = 0
+        if misses_until_risk == 0:
+            headline = "You are right on the attendance boundary"
+            message = "Missing even one more class would push this subject below target."
+            status = "edge"
+        elif misses_until_risk == 1:
+            headline = "You can miss 1 more class safely"
+            message = "One absence still keeps you safe, but the next one creates risk."
+            status = "tight"
+        else:
+            headline = f"You can miss {misses_until_risk} more classes safely"
+            message = "You still have a buffer, but keep logging attendance to protect it."
+            status = "safe"
+
+    return {
+        **snapshot,
+        "status": status,
+        "headline": headline,
+        "message": message,
+        "misses_until_risk": misses_until_risk,
+        "classes_to_recover": classes_to_recover,
+    }
+
+
+def get_exam_countdown(user_id, db, limit=4):
+    cur = db.cursor()
+    today = date.today()
+    cur.execute(
+        """
+        SELECT deadlines.id,
+               deadlines.title,
+               deadlines.due_date,
+               deadlines.priority,
+               subjects.name
+        FROM deadlines
+        JOIN subjects ON deadlines.subject_id = subjects.id
+        WHERE subjects.user_id = ?
+          AND deadlines.completed = 0
+          AND LOWER(COALESCE(deadlines.type, '')) = 'exam'
+          AND deadlines.due_date >= ?
+        ORDER BY deadlines.due_date
+        LIMIT ?
+        """,
+        (user_id, today.isoformat(), limit),
+    )
+
+    exams = []
+    for exam_id, title, due_date, priority, subject_name in cur.fetchall():
+        due = date.fromisoformat(due_date)
+        days_left = (due - today).days
+        if days_left <= 1:
+            urgency = "urgent"
+            countdown = "Tomorrow" if days_left == 1 else "Today"
+        elif days_left <= 3:
+            urgency = "soon"
+            countdown = f"In {days_left} days"
+        else:
+            urgency = "planned"
+            countdown = f"In {days_left} days"
+
+        exams.append(
+            {
+                "id": exam_id,
+                "title": title,
+                "due_date": due_date,
+                "priority": priority or "medium",
+                "subject": subject_name,
+                "days_left": days_left,
+                "countdown": countdown,
+                "urgency": urgency,
+            }
+        )
+
+    return exams
+
+
+def make_study_session_key(day_key, item_type, subject, title):
+    raw = f"{day_key}|{item_type}|{subject}|{title}"
+    return hashlib.sha1(raw.encode("utf-8")).hexdigest()[:20]
+
+
+def build_study_plan(user_id, db):
+    cur = db.cursor()
+    today = date.today()
+    plan_by_date = {}
+    subject_names = {}
+    cur.execute(
+        """
+        SELECT session_key, completed
+        FROM study_plan_progress
+        WHERE user_id = ?
+        """,
+        (user_id,),
+    )
+    progress_map = {session_key: bool(completed) for session_key, completed in cur.fetchall()}
+
+    cur.execute("SELECT id, name FROM subjects WHERE user_id = ?", (user_id,))
+    for subject_id, name in cur.fetchall():
+        subject_names[subject_id] = name
+
+    for offset in range(7):
+        current_day = today + timedelta(days=offset)
+        plan_by_date[current_day.isoformat()] = {
+            "date": current_day.isoformat(),
+            "label": current_day.strftime("%a, %d %b"),
+            "items": [],
+        }
+
+    for subject_id in subject_names:
+        forecast = get_attendance_forecast(subject_id, db)
+        if not forecast:
+            continue
+        if forecast["status"] in {"recover", "edge", "tight"}:
+            plan_by_date[today.isoformat()]["items"].append(
+                {
+                    "type": "attendance",
+                    "subject": forecast["name"],
+                    "duration": "45 min",
+                    "title": "Attendance recovery review",
+                    "note": forecast["headline"],
+                    "day_key": today.isoformat(),
+                }
+            )
+
+    cur.execute(
+        """
+        SELECT timetable.subject_id, timetable.weekday, timetable.class_date, timetable.is_extra
+        FROM timetable
+        JOIN subjects ON subjects.id = timetable.subject_id
+        WHERE timetable.user_id = ?
+        """,
+        (user_id,),
+    )
+    timetable_rows = cur.fetchall()
+
+    for offset in range(7):
+        current_day = today + timedelta(days=offset)
+        day_key = current_day.isoformat()
+        weekday = current_day.weekday()
+        for subject_id, saved_weekday, class_date, is_extra in timetable_rows:
+            is_match = (is_extra == 0 and saved_weekday == weekday) or (
+                is_extra == 1 and class_date == day_key
+            )
+            if is_match:
+                plan_by_date[day_key]["items"].append(
+                    {
+                        "type": "class",
+                        "subject": subject_names.get(subject_id, "Subject"),
+                        "duration": "30 min",
+                        "title": "Class follow-up",
+                        "note": "Review notes and update attendance after class.",
+                        "day_key": day_key,
+                    }
+                )
+
+    cur.execute(
+        """
+        SELECT deadlines.title,
+               deadlines.due_date,
+               deadlines.type,
+               deadlines.priority,
+               subjects.name
+        FROM deadlines
+        JOIN subjects ON deadlines.subject_id = subjects.id
+        WHERE subjects.user_id = ?
+          AND deadlines.completed = 0
+          AND deadlines.due_date BETWEEN ? AND ?
+        ORDER BY deadlines.due_date
+        """,
+        (user_id, today.isoformat(), (today + timedelta(days=7)).isoformat()),
+    )
+    for title, due_date, deadline_type, priority, subject_name in cur.fetchall():
+        due = date.fromisoformat(due_date)
+        prep_day = max(today, due - timedelta(days=2 if (deadline_type or "").lower() == "exam" else 1))
+        duration = "90 min" if (deadline_type or "").lower() == "exam" else "60 min"
+        item_type = "exam" if (deadline_type or "").lower() == "exam" else "deadline"
+        if prep_day.isoformat() in plan_by_date:
+            plan_by_date[prep_day.isoformat()]["items"].append(
+                {
+                    "type": item_type,
+                    "subject": subject_name,
+                    "duration": duration,
+                    "title": title,
+                    "note": f"{(deadline_type or 'task').title()} due on {due_date} ({priority or 'medium'} priority).",
+                    "day_key": prep_day.isoformat(),
+                }
+            )
+
+    plan = [plan_by_date[key] for key in sorted(plan_by_date)]
+    completed_sessions = 0
+    total_sessions = 0
+    for day in plan:
+        for item in day["items"]:
+            key = make_study_session_key(day["date"], item["type"], item["subject"], item["title"])
+            item["session_key"] = key
+            item["completed"] = progress_map.get(key, False)
+            total_sessions += 1
+            if item["completed"]:
+                completed_sessions += 1
+        day["items"].sort(key=lambda item: (item["completed"], item["type"], item["title"]))
+
+    busy_days = sum(1 for day in plan if day["items"])
+
+    return {
+        "days": plan,
+        "busy_days": busy_days,
+        "total_sessions": total_sessions,
+        "completed_sessions": completed_sessions,
+        "pending_sessions": total_sessions - completed_sessions,
+    }
+
+
 @app.route("/")
 def home():
     return redirect("/dashboard")
@@ -178,12 +470,17 @@ def dashboard():
 
     subjects_at_risk = 0
     attendance_values = []
+    recovery_subjects = 0
     for subject_id in subject_ids:
-        # Reuse the shared helper so the dashboard stays consistent with the detailed pages.
-        pct = calculate_attendance_percentage(subject_id, db)
+        forecast = get_attendance_forecast(subject_id, db)
+        if not forecast:
+            continue
+        pct = forecast["percentage"]
         attendance_values.append(pct)
         if pct < 80:
             subjects_at_risk += 1
+        if forecast["status"] in {"recover", "edge"}:
+            recovery_subjects += 1
 
     overall_attendance = round(sum(attendance_values) / len(attendance_values), 1) if attendance_values else 0
     safe_subjects = len(subject_ids) - subjects_at_risk
@@ -268,6 +565,13 @@ def dashboard():
     )
     attendance_trend = [round(row[1]) for row in cur.fetchall() if row[1] is not None]
 
+    exam_countdown = get_exam_countdown(user_id, db, limit=3)
+    study_plan = build_study_plan(user_id, db)
+    next_study_day = next(
+        (day for day in study_plan["days"] if any(not item["completed"] for item in day["items"])),
+        None,
+    )
+
     db.close()
 
     return render_template(
@@ -280,6 +584,10 @@ def dashboard():
         weekly_attendance=weekly_attendance,
         attendance_insight=attendance_insight,
         attendance_trend=attendance_trend,
+        exam_countdown=exam_countdown,
+        recovery_subjects=recovery_subjects,
+        study_plan=study_plan,
+        next_study_day=next_study_day,
     )
 
 
@@ -355,8 +663,9 @@ def attendance():
 
     subjects = []
     for subject_id, name in today_subjects:
-        attendance_pct = calculate_attendance_percentage(subject_id, db)
-        skip_left = classes_can_skip(subject_id, db)
+        forecast = get_attendance_forecast(subject_id, db)
+        attendance_pct = forecast["percentage"] if forecast else calculate_attendance_percentage(subject_id, db)
+        skip_left = forecast["skip_left"] if forecast else classes_can_skip(subject_id, db)
         cur.execute("SELECT date, status FROM attendance WHERE subject_id = ?", (subject_id,))
         attendance_map = {attendance_date: status for attendance_date, status in cur.fetchall()}
         subjects.append(
@@ -366,6 +675,7 @@ def attendance():
                 "attendance": attendance_pct,
                 "skip_left": skip_left,
                 "attendance_map": attendance_map,
+                "forecast": forecast,
             }
         )
 
@@ -522,8 +832,9 @@ def deadlines():
         (user_id,),
     )
     deadlines_list = cur.fetchall()
+    exam_countdown = get_exam_countdown(user_id, db, limit=6)
     db.close()
-    return render_template("deadlines.html", deadlines=deadlines_list)
+    return render_template("deadlines.html", deadlines=deadlines_list, exam_countdown=exam_countdown)
 
 
 @app.route("/add-deadline", methods=["GET", "POST"])
@@ -838,6 +1149,64 @@ def timetable():
 
     db.close()
     return render_template("timetable.html", subjects=subjects, timetable_map=timetable_map)
+
+
+@app.route("/study-planner")
+def study_planner():
+    if not require_login():
+        return redirect("/login")
+
+    user_id = session["user_id"]
+    db = get_db()
+    plan = build_study_plan(user_id, db)
+    exam_countdown = get_exam_countdown(user_id, db, limit=4)
+    db.close()
+
+    return render_template(
+        "study_planner.html",
+        plan=plan,
+        exam_countdown=exam_countdown,
+    )
+
+
+@app.route("/study-planner/toggle", methods=["POST"])
+def toggle_study_planner_item():
+    if not require_login():
+        return redirect("/login")
+
+    user_id = session["user_id"]
+    session_key = request.form.get("session_key")
+    completed = 1 if request.form.get("completed") == "1" else 0
+    if not session_key:
+        return redirect("/study-planner")
+
+    db = get_db()
+    cur = db.cursor()
+    cur.execute(
+        """
+        INSERT INTO study_plan_progress (user_id, session_key, completed, updated_at)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT(user_id, session_key)
+        DO UPDATE SET completed = excluded.completed, updated_at = excluded.updated_at
+        """,
+        (user_id, session_key, completed, datetime.now().isoformat(timespec="seconds")),
+    )
+    db.commit()
+    db.close()
+    return redirect("/study-planner")
+
+
+@app.route("/study-planner/reset", methods=["POST"])
+def reset_study_planner_progress():
+    if not require_login():
+        return redirect("/login")
+
+    db = get_db()
+    cur = db.cursor()
+    cur.execute("DELETE FROM study_plan_progress WHERE user_id = ?", (session["user_id"],))
+    db.commit()
+    db.close()
+    return redirect("/study-planner")
 
 
 @app.route("/profile", methods=["GET", "POST"])
@@ -1174,5 +1543,5 @@ with app.app_context():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, use_reloader=False)
+    app.run(debug=True)
 

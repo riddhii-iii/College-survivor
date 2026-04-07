@@ -4,6 +4,36 @@
     <meta charset="UTF-8">
     <title>Login - College Survivor</title>
 <style>
+:root {
+    --bg-gradient: linear-gradient(135deg, #0F1C3F, #1A2A6C);
+    --card-bg: rgba(248, 245, 233, 0.95);
+    --text-main: #1A2A6C;
+    --text-muted: #5E665E;
+    --text-light: #FFFFFF;
+    --accent: #FFD97D;
+    --danger: #d9534f;
+    --primary-soft: rgba(26,42,108,0.15);
+}
+body.theme-matcha {
+    --bg-gradient: linear-gradient(135deg, #E8F5E9, #FDECEF);
+    --card-bg: rgba(255, 248, 251, 0.95);
+    --text-main: #1B5E20;
+    --text-muted: #5E665E;
+    --text-light: #FFFFFF;
+    --accent: #C2185B;
+    --danger: #C2185B;
+    --primary-soft: rgba(46,125,50,0.16);
+}
+body.theme-terracotta {
+    --bg-gradient: linear-gradient(135deg, #8C3B2A, #C96A4A 58%, #E7C9A9);
+    --card-bg: rgba(255, 248, 240, 0.95);
+    --text-main: #6F2E1E;
+    --text-muted: #7A5A4B;
+    --text-light: #FFF7EF;
+    --accent: #E0A13B;
+    --danger: #A63D2F;
+    --primary-soft: rgba(161,73,47,0.16);
+}
 body {
     margin: 0;
     height: 100vh;
@@ -11,7 +41,7 @@ body {
     justify-content: center;
     align-items: center;
     font-family: "Segoe UI", sans-serif;
-    background: linear-gradient(135deg, #0f1c3f, #1a2a6c);
+    background: var(--bg-gradient);
     perspective: 1200px;
     overflow: hidden;
 }
@@ -21,7 +51,7 @@ body::before, body::after {
     width: 350px;
     height: 350px;
     border-radius: 50%;
-    background: rgba(255, 217, 125, 0.2);
+    background: color-mix(in srgb, var(--accent) 24%, transparent);
     filter: blur(120px);
     z-index: 0;
 }
@@ -32,7 +62,7 @@ body::after { bottom: -120px; right: -100px; }
     z-index: 2;
     width: 420px;
     padding: 55px 45px;
-    background: rgba(248, 245, 233, 0.95);
+    background: var(--card-bg);
     border-radius: 30px;
     box-shadow: 0 60px 120px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.1) inset;
     transform-style: preserve-3d;
@@ -40,21 +70,21 @@ body::after { bottom: -120px; right: -100px; }
     animation: float 6s ease-in-out infinite;
 }
 @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-12px); } 100% { transform: translateY(0px); } }
-.login-card h1 { text-align: center; color: #1A2A6C; margin-bottom: 10px; }
-.tagline { text-align: center; font-size: 14px; color: #555; margin-bottom: 35px; }
+.login-card h1 { text-align: center; color: var(--text-main); margin-bottom: 10px; }
+.tagline { text-align: center; font-size: 14px; color: var(--text-muted); margin-bottom: 35px; }
 .input-group { position: relative; margin-bottom: 22px; }
-.input-group input { width: 100%; padding: 14px 52px 14px 52px; border-radius: 16px; border: 2px solid transparent; background: #ffffff; font-size: 14px; outline: none; transition: 0.3s ease; box-sizing: border-box; }
-.input-group input:focus { border-color: #1A2A6C; box-shadow: 0 0 0 4px rgba(26,42,108,0.15); }
-.input-icon, .toggle-password { position: absolute; top: 50%; transform: translateY(-50%); font-size: 12px; color: #1A2A6C; font-weight: 700; letter-spacing: 0.08em; }
+.input-group input { width: 100%; padding: 14px 52px 14px 52px; border-radius: 16px; border: 2px solid transparent; background: #ffffff; font-size: 14px; outline: none; transition: 0.3s ease; box-sizing: border-box; color: var(--text-main); }
+.input-group input:focus { border-color: var(--text-main); box-shadow: 0 0 0 4px var(--primary-soft); }
+.input-icon, .toggle-password { position: absolute; top: 50%; transform: translateY(-50%); font-size: 12px; color: var(--text-main); font-weight: 700; letter-spacing: 0.08em; }
 .input-icon { left: 15px; }
 .toggle-password { right: 15px; cursor: pointer; }
-.login-btn { width: 100%; padding: 15px; border-radius: 18px; border: none; font-weight: 600; font-size: 15px; cursor: pointer; background: linear-gradient(90deg, #1A2A6C, #FFD97D); color: white; box-shadow: 0 20px 40px rgba(0,0,0,0.4); transition: 0.3s ease; }
+.login-btn { width: 100%; padding: 15px; border-radius: 18px; border: none; font-weight: 600; font-size: 15px; cursor: pointer; background: linear-gradient(90deg, var(--text-main), var(--accent)); color: white; box-shadow: 0 20px 40px rgba(0,0,0,0.4); transition: 0.3s ease; }
 .login-btn:hover { transform: translateY(-4px); box-shadow: 0 30px 50px rgba(0,0,0,0.5); }
 .forgot { text-align: right; margin-bottom: 18px; }
-.forgot a { font-size: 13px; color: #1A2A6C; text-decoration: none; }
+.forgot a { font-size: 13px; color: var(--text-main); text-decoration: none; }
 .register { margin-top: 25px; text-align: center; font-size: 14px; }
-.register a { color: #1A2A6C; font-weight: 600; text-decoration: none; }
-.error { margin-bottom: 15px; color: #d9534f; font-size: 14px; text-align: center; }
+.register a { color: var(--text-main); font-weight: 600; text-decoration: none; }
+.error { margin-bottom: 15px; color: var(--danger); font-size: 14px; text-align: center; }
 </style>
 </head>
 <body>
@@ -90,6 +120,11 @@ document.addEventListener("mousemove", (e) => {
 });
 document.addEventListener("mouseleave", () => {
     card.style.transform = "rotateY(0deg) rotateX(0deg)";
+});
+window.addEventListener("DOMContentLoaded", () => {
+    const savedTheme = localStorage.getItem("site-theme");
+    const validThemes = ["", "theme-matcha", "theme-terracotta"];
+    document.body.className = validThemes.includes(savedTheme) ? savedTheme : "";
 });
 </script>
 </body>

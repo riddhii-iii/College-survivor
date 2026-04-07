@@ -84,10 +84,17 @@
                     <div class="progress-track">
                         <div
                             class="progress-fill"
-                            style="width: {{ subject.attendance }}%; background: {% if subject.attendance < min_required %}#f28b82{% else %}#81c995{% endif %};"
+                            style="width: {{ subject.attendance }}%; background: {% if subject.attendance < min_required %}var(--danger-soft){% else %}var(--success-soft){% endif %};"
                         ></div>
                     </div>
                 </div>
+
+                {% if subject.forecast %}
+                <div class="forecast-box">
+                    <h4>{{ subject.forecast.headline }}</h4>
+                    <p>{{ subject.forecast.message }}</p>
+                </div>
+                {% endif %}
             </div>
 
             <div class="calendar-box">
@@ -214,42 +221,43 @@ document.querySelectorAll(".count-up").forEach((el) => {
 
 <style>
 .attendance-page {
-    color: #F8F5E9;
+    color: var(--text-light);
 }
 
 .attendance-page h1,
 .attendance-page h2,
 .attendance-page h3 {
-    color: #FFD97D;
+    color: var(--accent);
 }
 
 .muted {
-    color: #D6D2C4;
+    color: color-mix(in srgb, var(--primary) 72%, white);
 }
 
 .empty {
-    color: #CFC9B8;
+    color: color-mix(in srgb, var(--primary) 64%, white);
 }
 
 .month-summary {
-    background: #F8F5E9;
-    color: #1A2A6C;
+    background: var(--card-bg);
+    color: var(--text-main);
     padding: 28px;
     border-radius: 22px;
     margin-bottom: 35px;
-    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
-    border-left: 10px solid #1A2A6C;
+    box-shadow: var(--shadow-strong);
+    border-left: 10px solid var(--primary);
+    outline: 1px solid var(--divider-strong);
 }
 
 .month-summary h2 {
     margin-top: 0;
     font-weight: 600;
-    color: #1A2A6C;
+    color: var(--primary);
 }
 
 .month-summary strong {
     font-size: 20px;
-    color: #0F1C3F;
+    color: var(--primary-strong);
 }
 
 .month-progress-wrap {
@@ -265,13 +273,13 @@ document.querySelectorAll(".count-up").forEach((el) => {
 
 .ring-bg {
     fill: none;
-    stroke: #E5DFCF;
+    stroke: var(--card-bg-soft);
     stroke-width: 10;
 }
 
 .ring-progress {
     fill: none;
-    stroke: #1A2A6C;
+    stroke: var(--primary);
     stroke-width: 10;
     stroke-linecap: round;
     stroke-dasharray: 314;
@@ -282,12 +290,12 @@ document.querySelectorAll(".count-up").forEach((el) => {
 .ring-text {
     font-size: 30px;
     font-weight: 700;
-    color: #1A2A6C;
+    color: var(--primary);
 }
 
 .ring-label {
     font-size: 13px;
-    color: #5C5A52;
+    color: var(--text-muted);
 }
 
 .month-nav {
@@ -301,13 +309,13 @@ document.querySelectorAll(".count-up").forEach((el) => {
 
 .month-nav a {
     text-decoration: none;
-    color: #FFD97D;
+    color: var(--accent);
     font-weight: 600;
     transition: 0.2s ease;
 }
 
 .month-nav a:hover {
-    color: #FFFFFF;
+    color: var(--text-light);
 }
 
 .toolbar {
@@ -322,10 +330,11 @@ document.querySelectorAll(".count-up").forEach((el) => {
 #subjectSelect {
     padding: 10px 14px;
     border-radius: 12px;
-    border: none;
-    background: #F8F5E9;
-    color: #1A2A6C;
+    border: 1px solid var(--divider-strong);
+    background: var(--card-bg);
+    color: var(--text-main);
     font-weight: 500;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--card-bg-strong) 65%, transparent);
 }
 
 .intro-copy {
@@ -333,17 +342,18 @@ document.querySelectorAll(".count-up").forEach((el) => {
 }
 
 .subject-card {
-    background: #F8F5E9;
-    color: #1A2A6C;
+    background: var(--card-bg);
+    color: var(--text-main);
     border-radius: 20px;
     padding: 26px;
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
     gap: 30px;
     margin-bottom: 32px;
-    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.35);
+    box-shadow: var(--shadow-strong);
     transition: transform 0.3s ease;
     position: relative;
+    outline: 1px solid var(--divider-strong);
 }
 
 .subject-card::before {
@@ -353,7 +363,7 @@ document.querySelectorAll(".count-up").forEach((el) => {
     top: 0;
     width: 8px;
     height: 100%;
-    background: #85795f;
+    background: var(--primary);
     border-radius: 20px 0 0 20px;
 }
 
@@ -381,18 +391,18 @@ document.querySelectorAll(".count-up").forEach((el) => {
 }
 
 .btn.present {
-    background: #E3F2FD;
-    color: #1A2A6C;
+    background: var(--info-soft);
+    color: var(--info-text);
 }
 
 .btn.absent {
-    background: #FAD4D4;
-    color: #8B1E1E;
+    background: var(--danger-soft);
+    color: var(--danger);
 }
 
 .btn.cancelled {
-    background: #FFF2CC;
-    color: #8A6B00;
+    background: var(--warning-soft);
+    color: var(--warning);
 }
 
 .btn:hover {
@@ -400,12 +410,12 @@ document.querySelectorAll(".count-up").forEach((el) => {
 }
 
 .safe {
-    color: #1A2A6C;
+    color: var(--success);
     font-weight: 600;
 }
 
 .danger {
-    color: #C0392B;
+    color: var(--danger);
     font-weight: 600;
 }
 
@@ -415,7 +425,7 @@ document.querySelectorAll(".count-up").forEach((el) => {
 
 .progress-track {
     height: 12px;
-    background: #E5DFCF;
+    background: var(--card-bg-soft);
     border-radius: 20px;
     overflow: hidden;
 }
@@ -425,20 +435,43 @@ document.querySelectorAll(".count-up").forEach((el) => {
     border-radius: 20px;
 }
 
+.forecast-box {
+    margin-top: 18px;
+    padding: 14px 16px;
+    border-radius: 16px;
+    background: var(--card-bg-strong);
+    border: 1px solid var(--divider-strong);
+}
+
+.forecast-box h4 {
+    margin: 0 0 8px;
+    color: var(--primary);
+}
+
+.forecast-box p {
+    margin: 0;
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
 .calendar-box {
     width: 100%;
     max-width: 320px;
-    background: #FFFFFF;
+    background: var(--card-bg-strong);
     border-radius: 18px;
     padding: 18px;
     border: none;
-    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.25);
+    box-shadow: var(--shadow-soft);
     box-sizing: border-box;
 }
 
 .calendar-box strong,
 .calendar-header {
-    color: #1A2A6C;
+    color: var(--primary);
+}
+
+.calendar-box {
+    border: 1px solid var(--divider-strong);
 }
 
 .calendar-header {
@@ -458,7 +491,9 @@ document.querySelectorAll(".count-up").forEach((el) => {
 .day-cell {
     min-height: 42px;
     border-radius: 10px;
-    background: #F8F5E9;
+    background: var(--card-bg);
+    color: var(--text-main);
+    border: 1px solid color-mix(in srgb, var(--divider-strong) 72%, transparent);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -469,8 +504,8 @@ document.querySelectorAll(".count-up").forEach((el) => {
 }
 
 .day-cell:hover {
-    background: #FFD97D;
-    color: #1A2A6C;
+    background: var(--accent);
+    color: var(--text-main);
     transform: scale(1.05);
 }
 
@@ -480,15 +515,15 @@ document.querySelectorAll(".count-up").forEach((el) => {
 }
 
 .status.present {
-    color: #1A2A6C;
+    color: var(--success);
 }
 
 .status.absent {
-    color: #C0392B;
+    color: var(--danger);
 }
 
 .status.cancelled {
-    color: #B8860B;
+    color: var(--warning);
 }
 
 @media (max-width: 900px) {

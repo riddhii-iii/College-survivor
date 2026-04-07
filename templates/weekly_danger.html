@@ -35,21 +35,21 @@
 .danger-wrapper {
     min-height: 100vh;
     padding: 40px;
-    background: linear-gradient(135deg, #0F1C3F 0%, #1C2E5A 65%, #F8F5E9 100%);
     font-family: system-ui;
 }
-.danger-header { text-align: center; margin-bottom: 45px; color: #FFD97D; }
+.danger-header { text-align: center; margin-bottom: 45px; color: var(--accent); }
 .danger-header h1 { margin-bottom: 8px; font-size: 34px; }
-.danger-header p { opacity: 0.85; color: #F8F5E9; }
+.danger-header p { opacity: 0.9; color: color-mix(in srgb, var(--text-light) 84%, transparent); }
 .danger-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 28px; }
 .danger-card {
-    background: #F8F5E9;
+    background: var(--card-bg);
     border-radius: 22px;
     padding: 26px;
-    box-shadow: 0 20px 45px rgba(0,0,0,0.25);
+    box-shadow: var(--shadow-strong);
     transition: 0.3s ease;
     position: relative;
     overflow: hidden;
+    color: var(--text-main);
 }
 .danger-card::before {
     content: "";
@@ -58,30 +58,30 @@
     top: 0;
     width: 8px;
     height: 100%;
-    background: #FFD97D;
+    background: var(--accent);
     border-radius: 22px 0 0 22px;
 }
 .danger-card:hover { transform: translateY(-6px); box-shadow: 0 25px 55px rgba(0,0,0,0.35); }
 .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
-.card-top h3 { margin: 0; color: #1C2E5A; }
+.card-top h3 { margin: 0; color: var(--primary); }
 .danger-badge {
-    background: #FFD97D;
-    color: #1C2E5A;
+    background: var(--accent);
+    color: var(--text-main);
     padding: 6px 14px;
     border-radius: 20px;
     font-size: 13px;
     font-weight: 600;
 }
-.reason-list { padding-left: 18px; color: #444; }
+.reason-list { padding-left: 18px; color: var(--text-muted); }
 .reason-list li { margin-bottom: 10px; }
 .safe-state {
-    background: #F8F5E9;
+    background: var(--card-bg);
     padding: 32px;
     border-radius: 22px;
     text-align: center;
     font-weight: 600;
-    color: #1C2E5A;
-    box-shadow: 0 20px 45px rgba(0,0,0,0.25);
+    color: var(--text-main);
+    box-shadow: var(--shadow-strong);
 }
 </style>
 
